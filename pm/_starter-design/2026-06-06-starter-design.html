@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>datacraft-Project — starter design</title>
+<style>
+  :root {
+    --bg: #F4ECE0;
+    --ink: #2D241B;
+    --muted: #8B7B68;
+    --accent: #C04D2E;
+    --rule: #D9CFC0;
+    --soft: #EBE0D0;
+    --code-bg: #2D241B;
+    --code-ink: #F4ECE0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, sans-serif;
+    max-width: 68ch; margin: 4rem auto; padding: 0 2rem 8rem;
+  }
+  h1 {
+    font-family: Charter, 'Iowan Old Style', Georgia, serif;
+    font-size: 2.6rem; line-height: 1.1; margin: 0 0 1.2rem;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-family: Charter, 'Iowan Old Style', Georgia, serif;
+    font-size: 1.5rem; line-height: 1.2; margin: 0 0 0.6rem;
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-family: Charter, 'Iowan Old Style', Georgia, serif;
+    font-size: 1.1rem; line-height: 1.3; margin: 1.5rem 0 0.4rem;
+  }
+  p { margin: 0.6rem 0; }
+  em { font-style: italic; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); }
+  .eyebrow {
+    font-size: 0.72rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+  .meta {
+    font-size: 0.92rem; color: var(--muted);
+    margin: 1.5rem 0 3rem; padding: 1.2rem 1.4rem;
+    background: var(--soft); border-left: 2px solid var(--accent);
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .meta p { margin: 0.3rem 0; }
+  .card {
+    border-top: 1px solid var(--rule);
+    padding: 2.2rem 0 0.6rem;
+  }
+  .tags {
+    font-size: 0.7rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 0.9rem;
+  }
+  .row {
+    display: grid; grid-template-columns: 8rem 1fr;
+    gap: 1rem; font-size: 0.94rem; margin-top: 0.5rem;
+  }
+  .label {
+    text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: 0.68rem; color: var(--muted); padding-top: 0.25rem;
+  }
+  pre {
+    background: var(--code-bg); color: var(--code-ink);
+    font: 0.82rem/1.55 ui-monospace, 'SF Mono', Menlo, monospace;
+    padding: 1.2rem 1.4rem; overflow-x: auto;
+    margin: 1rem 0;
+  }
+  pre.tree { font-size: 0.8rem; line-height: 1.6; }
+  pre .c { color: #8B7B68; }
+  pre .a { color: #E89568; }
+  code {
+    font: 0.88em ui-monospace, 'SF Mono', Menlo, monospace;
+    background: var(--soft); padding: 0.1em 0.35em;
+    border-radius: 2px; color: var(--ink);
+  }
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.5rem; margin: 1rem 0;
+  }
+  .split > div {
+    padding: 1.2rem 1.4rem; background: var(--soft);
+    border-top: 2px solid var(--accent);
+  }
+  .split h3 { margin-top: 0; font-size: 1rem; }
+  .split p { font-size: 0.9rem; margin: 0.4rem 0; }
+  .split ul { font-size: 0.88rem; padding-left: 1.1rem; margin: 0.5rem 0; }
+  .split li { margin: 0.25rem 0; }
+  ul.compact { padding-left: 1.2rem; }
+  ul.compact li { margin: 0.3rem 0; font-size: 0.95rem; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.9rem; margin: 1rem 0;
+  }
+  th {
+    text-align: left; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 0.7rem; color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.6rem 0.8rem 0.5rem 0;
+  }
+  td {
+    padding: 0.7rem 0.8rem 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  td:first-child { font-weight: 500; white-space: nowrap; }
+  .pill {
+    display: inline-block;
+    font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem; border-radius: 2px;
+    background: var(--accent); color: var(--bg);
+    margin-left: 0.4rem; vertical-align: middle;
+  }
+  .pill.muted { background: var(--muted); }
+  blockquote {
+    margin: 1rem 0; padding: 0.8rem 1.2rem;
+    border-left: 2px solid var(--accent);
+    font-style: italic; color: var(--ink);
+    background: var(--soft);
+    font-size: 0.95rem;
+  }
+  blockquote cite {
+    display: block; margin-top: 0.4rem;
+    font-size: 0.78rem; font-style: normal;
+    color: var(--muted); letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .legend {
+    font-size: 0.8rem; color: var(--muted);
+    margin-top: 0.3rem; font-style: italic;
+  }
+  hr.heavy {
+    border: 0; border-top: 2px solid var(--ink);
+    margin: 3.5rem 0 0; opacity: 0.85;
+  }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Starter design — datacraft-Project</div>
+<h1>A project-management starter that stays light and grows heavy.</h1>
+
+<p class="meta">
+  <p><b>Date:</b> 2026-06-06</p>
+  <p><b>Constraints:</b> Light by default. One structure that scales both ways. Preserves the task+changelog rhythm Joe already likes. Drops into the existing four code starters as a companion layer without forking.</p>
+  <p><b>Success looks like:</b> A fifth sibling beside <code>datacraft-web</code>, <code>-sass</code>, <code>-fm</code>, <code>-agent</code>. Equally usable for a three-hour change request OR a six-month fixed-bid engagement. No structural decision required up front about how big the project is.</p>
+  <p><b>What this is NOT:</b> A heavier methodology imposed on every project. A separate template per project size. A code framework — this is the connective tissue around an engagement, not the build.</p>
+</p>
+
+<section class="card">
+  <div class="tags">Origin</div>
+  <h2>Three sources, three layers of the same answer.</h2>
+  <p>This starter is a distillation of three sources Joe encountered around the design session: Charlie Bailey on AI-enhanced project management, Wei Hao on Magic-the-Gathering-style scope control, and Matt Maher's commentary on agent workflows. They cover the daily heartbeat, the planning vocabulary, and the agent-orientation problem — and none is complete without the others.</p>
+
+  <div class="split">
+    <div>
+      <h3>Charlie Bailey · Codence</h3>
+      <p class="legend">The operational layer.</p>
+      <ul>
+        <li><strong>Stepping-away</strong> ritual at end of day</li>
+        <li>Single shared session log per project</li>
+        <li><strong>"What's next?"</strong> answerable from context, not from the PM</li>
+        <li>Ticket sync (Asana/Jira) via skill, not by hand</li>
+        <li>Client-facing dashboard dropped into FM web viewer</li>
+        <li>HTML prototypes in 30–45 min for customer validation</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Wei Hao · Direct Impact</h3>
+      <p class="legend">The planning vocabulary.</p>
+      <ul>
+        <li><strong>Skeleton</strong> replaces "MVP" — 5-step structured artifact</li>
+        <li><strong>One in, one out</strong> for trade-offs under fixed scope</li>
+        <li><strong>Flavor check</strong> — recurring drift audit</li>
+        <li><strong>Test, learn, shrink</strong> — thin slice philosophy</li>
+        <li>Backlog should produce a <em>coherent release</em>, not a smaller pile</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="padding: 1.4rem 1.6rem; background: var(--soft); border-top: 2px solid var(--accent); margin-top: 1.2rem;">
+    <h3 style="margin-top: 0; font-size: 1rem;">Matt Maher · on agent workflows</h3>
+    <p class="legend">The agent-orientation problem.</p>
+    <blockquote style="background: transparent; padding: 0.4rem 0; margin: 0.6rem 0; border-left: 2px solid var(--accent); padding-left: 1rem;">
+      These systems were built to execute. So they nail the <em>what</em>, the list of features — and they quietly let the <em>why</em> go. Once you really see that, the frontier stops being the code at all. It just becomes the ideation, the judgment, the deciding what's even worth building.
+      <cite style="display: block; margin-top: 0.5rem; font-size: 0.75rem; font-style: normal; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;">Matt Maher — "AI Has Started Building AI — and It's Already Here," 2026-06-08</cite>
+    </blockquote>
+    <p style="font-size: 0.92rem; margin-top: 0.6rem;">Maher's framing named a gap the first two sources didn't explicitly cover: <strong>the agent's session-level orientation.</strong> Charlie has the daily rhythm. Wei Hao has the scope discipline. But neither says where the <em>active why</em> — the why for the current push — lives so the agent can read it on every tool call. The starter's <strong>Intent block</strong> (top of each session entry, set by <code>whats-next</code>, checked by <code>stepping-away</code>) is the answer.</p>
+  </div>
+
+  <p style="margin-top: 1.4rem;">Charlie gives the daily heartbeat. Wei Hao gives the language for talking about scope. Maher names what the heartbeat is <em>for</em> — keeping the lead-agent oriented when execution wants to drift from intent. Together they cover ops, strategy, and orientation.</p>
+</section>
+
+<section class="card">
+  <div class="tags">Four core design moves</div>
+  <h2>The decisions that shaped everything else.</h2>
+
+  <h3>1. Sessions, not changelog.</h3>
+  <p>The canonical task+changelog pattern survives, but <code>changelog/</code> becomes <code>sessions/</code>. Per-day files capture <em>what shipped</em> and <em>why we did what we did</em> in one artifact — Charlie's running narrative without his single-file sprawl. The "stepping away" skill writes this file.</p>
+  <div class="row"><div class="label">Why</div><div>Joe was already rambling thinking into the changelog; the rename matches the truth of the content.</div></div>
+  <div class="row"><div class="label">Trade</div><div>Slight divergence from the "ledger" connotation of "changelog." Worth it — propagate the rename to all five starters.</div></div>
+
+  <h3>2. Skeleton, not MVP.</h3>
+  <p>Wei Hao's <strong>skeleton.md</strong> is the default planning artifact — outcome sentence, one user journey, minimum capabilities, fundamental enablers, non-negotiables. For a change-request job it's a paragraph. For a six-month engagement it's a longer doc. Same artifact, scales with content.</p>
+  <div class="row"><div class="label">Why</div><div>"MVP" has been corrupted into "phase one deliverable." Skeleton is more honest about the bare-bones nature.</div></div>
+  <div class="row"><div class="label">Trade</div><div>New vocabulary to internalize. Worth it — the term does the conceptual work.</div></div>
+
+  <h3>3. Light by default. Heavy grows organically.</h3>
+  <p>One scaffold. Charlie's <code>milestones/</code> folders become an <em>opt-in expansion pattern</em>, not the default unit. Small projects never sprout them. Big projects do — when the path to the skeleton is too long for one go.</p>
+  <div class="row"><div class="label">Why</div><div>"Pick light or heavy at start" loses every time. Same scaffold from change request through fixed-bid avoids the fork.</div></div>
+  <div class="row"><div class="label">Trade</div><div>Asks the user to recognize when complexity warrants sprouting milestones. Documented in CLAUDE.md with the rule of thumb.</div></div>
+
+  <h3>4. Active intent — the agent's anchor for the day.</h3>
+  <p>The skeleton holds the macro why. Sessions hold the past why. TASKS holds the queue. The fourth layer — added after Maher's framing exposed the gap — is the <strong>active why</strong>: a small <code>## Intent</code> block at the top of each session entry that names today's push, why it matters, what done-for-today looks like, and what's explicitly not in scope.</p>
+  <div class="row"><div class="label">Why</div><div>Agents nail the <em>what</em> and quietly let the <em>why</em> go. Without an anchor the agent can read on every tool call, drift accumulates silently. The Intent block is that anchor; the Intent-vs-outcome check at end-of-day is the drift-catching mechanism.</div></div>
+  <div class="row"><div class="label">How</div><div><code>whats-next</code> drafts the Intent block at session start. <code>stepping-away</code> compares it to what shipped at session end. TASKS.md Current items carry a one-line Why + Done-when that travels into the Intent block.</div></div>
+  <div class="row"><div class="label">Trade</div><div>30 seconds of writing at session start. Skipped explicitly for quick fixes. The friction is paid back the first time it catches drift.</div></div>
+</section>
+
+<section class="card">
+  <div class="tags">Structure</div>
+  <h2>The full layout.</h2>
+  <p>Annotated tree. Items marked <span class="pill muted">opt-in</span> are documented patterns that appear only when the project warrants them — not in the empty starter.</p>
+
+  <pre class="tree">datacraft-Project/
+├── CLAUDE.md                   <span class="c">← orient Claude + the rename convention</span>
+├── README.md                   <span class="c">← orient humans</span>
+│
+├── docs/                       <span class="c">← META + ad-hoc Claude-generated catch-all</span>
+│   ├── _design/                <span class="c">    THIS doc — starter's own design history</span>
+│   ├── notes/                  <span class="c">    scratch, meeting notes, ad-hoc analysis</span>
+│   └── quirks.md               <span class="c">    technical gotchas</span>
+│
+├── resources/                  <span class="c">← canonical 4-folder taxonomy (same as siblings)</span>
+│   ├── design-handoff/
+│   ├── design-exploration/
+│   ├── research/
+│   └── history/
+│
+├── _pm/                        <span class="a">← PROJECT MANAGEMENT — all operational stuff</span>
+│   ├── README.md
+│   ├── skeleton.md             <span class="c">    Wei Hao 5-step. The macro why.</span>
+│   ├── TASKS.md                <span class="c">    Current / Next / Waiting / Backlog</span>
+│   ├── sessions/               <span class="c">    per-day what + why</span>
+│   ├── decisions/              <span class="c">    opt-in ADRs</span>
+│   ├── milestones/             <span class="c">    opt-in expansion</span>
+│   ├── requirements/           <span class="c">    user stories, personas, parrot-back</span>
+│   ├── artifacts/              <span class="c">    raw inputs</span>
+│   ├── prototypes/             <span class="c">    HTML mockups</span>
+│   ├── deliverables/           <span class="c">    reports, dashboards for client</span>
+│   └── bridges/                <span class="c">    Claude ↔ ChatGPT PII shuttle</span>
+│
+└── .claude/
+    └── skills/                 <span class="c">← project-local skills (two, both daily)</span>
+        ├── stepping-away/
+        └── whats-next/</pre>
+
+  <p class="legend">Companion mode (when an engagement also has code): <code>_pm/</code> drops in as one self-contained folder alongside the code starter's existing folders. See <code>datacraft-Project-FM/</code> for the FM combination already baked in — it pairs <code>_pm/</code> with <code>plugin/</code>, <code>schema/</code>, <code>webviewer/</code>, <code>web/</code>, <code>dev/</code>, <code>scripts/</code>. <code>_pm/prototypes/</code> stays portable (customer-validation work); code prototypes live in <code>dev/</code>/<code>webviewer/</code>/<code>web/</code>.</p>
+</section>
+
+<section class="card">
+  <div class="tags">Shared canonical</div>
+  <h2>What changes in <code>task-changelog/</code>.</h2>
+  <p>The canonical source-of-truth at <code>_starters/task-changelog/</code> gets renamed and expanded. All five starters then propagate.</p>
+
+  <table>
+    <thead>
+      <tr><th>Was</th><th>Becomes</th><th>Reason</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>task-changelog/</code></td>
+        <td><code>task-sessions/</code></td>
+        <td>Name matches the broader scope. The folder still contains TASKS.md as the spine.</td>
+      </tr>
+      <tr>
+        <td><code>changelog/</code></td>
+        <td><code>sessions/</code></td>
+        <td>Per-day files now capture <em>shipped</em> + <em>thinking</em>. Same per-day pattern Joe already likes.</td>
+      </tr>
+      <tr>
+        <td><code>changelog/_template.md</code></td>
+        <td><code>sessions/_template.md</code></td>
+        <td>Adds Shipped / Tried-Learned-Decided / Open-threads sections.</td>
+      </tr>
+      <tr>
+        <td>—</td>
+        <td><code>decisions/_template.md</code></td>
+        <td>New. Opt-in ADR pattern for durable choices that need to outlive a per-day file.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Same-commit rule extends: when work ships, <code>TASKS.md</code> + today's <code>sessions/</code> entry + (if any) <code>decisions/</code> entry move together in one commit.</p>
+</section>
+
+<section class="card">
+  <div class="tags">Two skills + two patterns</div>
+  <h2>Rituals: only what earns daily use.</h2>
+  <p>The starter ships two skills, both daily. Two earlier candidates (<code>scope-trade</code> and <code>flavor-check</code>) were considered and dropped — they're conversation patterns, not rituals, so they live in <code>CLAUDE.md</code>'s working conventions as principles rather than skill files.</p>
+
+  <h3>stepping-away <span class="pill">daily — close</span></h3>
+  <p>End-of-day ritual. Joe currently rambles to do this manually. The skill formalizes the checklist so he doesn't have to. Compares today's Intent to what shipped (drift catch).</p>
+  <div class="row"><div class="label">Reads</div><div>TASKS, today's session entry (with its Intent block), git log since midnight, the conversation</div></div>
+  <div class="row"><div class="label">Writes</div><div>Today's <code>sessions/YYYY-MM-DD.md</code> — Shipped, Tried/Learned/Decided, Intent-vs-outcome. Updated TASKS. Optional decision.</div></div>
+
+  <h3>whats-next <span class="pill">daily — open</span></h3>
+  <p>Morning open. Future-Joe four days later or a teammate cold-starting gets a grounded answer plus a drafted Intent block ready to paste.</p>
+  <div class="row"><div class="label">Reads</div><div>Last 1–3 session entries, current TASKS (with Why/Done-when), skeleton, recent decisions</div></div>
+  <div class="row"><div class="label">Writes</div><div>The day's Intent block into today's session entry. Proposes 1–2 things to pick up.</div></div>
+
+  <h3 style="margin-top: 2rem;">Dropped — and where they went instead</h3>
+  <div class="row"><div class="label">scope-trade</div><div>Wei Hao's "one in, one out" for new requests. Lives in CLAUDE.md working conventions as a one-line principle: ask "if this comes in, what comes out?" and document the trade in the session entry. Not a skill — a conversation.</div></div>
+  <div class="row"><div class="label">flavor-check</div><div>Wei Hao's drift audit. Lives in CLAUDE.md as a periodic prompt: monthly, restate the release goal in one sentence and compare to what's being built. Not a skill — a conversation.</div></div>
+  <p style="margin-top: 1rem;"><em>Reason for the trim:</em> the principles are real and important, but formalizing them as skill files makes them feel like discipline you have to perform. Two daily skills + two named conversational patterns is lighter than four skills, with no loss of substance.</p>
+</section>
+
+<section class="card">
+  <div class="tags">Template — skeleton.md</div>
+  <h2>The default planning artifact.</h2>
+  <p>Wei Hao's 5-step structure, slightly tightened for prose. Lives at <code>docs/skeleton.md</code> on day one of any project. Empty for change-requests, fuller for engagements.</p>
+
+  <pre><span class="c"># Skeleton — &lt;Project Name&gt;</span>
+
+<span class="c">## Outcome</span>
+&lt;One sentence. "After this release, &lt;user&gt; can &lt;do X&gt;."&gt;
+
+<span class="c">## The one user journey that must stay intact</span>
+&lt;The critical path. End to end. This is the proof of value.&gt;
+
+<span class="c">## Minimum capabilities</span>
+<span class="c">&lt;Only what, if removed, would break the journey.&gt;</span>
+- ...
+- ...
+
+<span class="c">## Fundamental enablers</span>
+<span class="c">&lt;Minimum data, roles, permissions, safety, compliance basics.&gt;</span>
+- ...
+
+<span class="c">## Non-negotiables</span>
+<span class="c">&lt;Budget, timeline, capacity, regulatory constraints. The fixed walls.&gt;</span>
+- ...
+
+<span class="c">---</span>
+
+<span class="c">## Quick test for any candidate story</span>
+<span class="c">A story belongs in the skeleton only if it makes at least one of these true:</span>
+<span class="c">- Without it, the core journey cannot be completed.</span>
+<span class="c">- Without it, the release is not usable or safe for intended users.</span>
+<span class="c">- Without it, the release is not testable or releasable.</span></pre>
+</section>
+
+<section class="card">
+  <div class="tags">Companion mode</div>
+  <h2>Dropping the PM layer into an existing code starter.</h2>
+  <p>When a project IS code (FM, web, SaaS) but also needs the PM layer — most client engagements — the PM-specific folders drop in alongside the code-starter's existing structure. The shared canonical (TASKS, sessions, decisions) is already there from the rename.</p>
+
+  <pre>datacraft-fm-acme/                   <span class="c">← FM project for client Acme</span>
+├── docs/                            <span class="c">← shared canonical (TASKS, sessions, decisions)</span>
+├── plugin/  webviewer/  web/        <span class="c">← FM-specific code (unchanged)</span>
+├── schema/  scripts/  dev/          <span class="c">← FM-specific tooling (unchanged)</span>
+│
+├── milestones/                      <span class="a">← PM layer dropped in</span>
+├── requirements/                    <span class="a">  same as standalone</span>
+├── artifacts/                       <span class="a">  (Zoom transcripts, customer docs)</span>
+├── deliverables/                    <span class="a">  (client status dashboard)</span>
+├── bridges/                         <span class="a"></span>
+│
+├── resources/                       <span class="c">← canonical taxonomy</span>
+└── .claude/skills/                  <span class="c">← 4 PM skills + any code skills</span></pre>
+
+  <p>Same conventions, same skills, same rituals. <code>prototypes/</code> does <em>not</em> drop in — the code starter's existing <code>dev/</code>, <code>webviewer/</code>, <code>web/</code> already serve that purpose. The PM layer is a portable subset, not a parallel universe.</p>
+</section>
+
+<section class="card">
+  <div class="tags">Naming convention</div>
+  <h2>The capital-P is intentional.</h2>
+  <p><code>datacraft-Project/</code> uses an uppercase <code>P</code> as a placeholder token. When starting a new engagement, replace <code>Project</code> with the client or project name: <code>datacraft-Acme</code>, <code>datacraft-Kelsey</code>, <code>datacraft-SBSOS</code>.</p>
+
+  <p>This diverges from the lowercase sibling convention (<code>datacraft-web</code>, <code>-sass</code>, <code>-fm</code>, <code>-agent</code>) <em>by design</em>. The other four are typed nouns. This one is a fillable slot. The casing makes the difference visible.</p>
+
+  <blockquote>
+    The thing I like about that is it keeps this whole memory and conversation connected with that folder, so we're not making a new folder.
+    <cite>Joe — design session, 2026-06-06</cite>
+  </blockquote>
+
+  <p>Rename-in-place (or rename-on-copy) keeps Claude's accumulated memory tied to the project from the moment of cloning forward. Worth a one-liner in the parent <code>_starters/CLAUDE.md</code> so future-Joe doesn't try to "fix" the casing.</p>
+</section>
+
+<section class="card">
+  <div class="tags">Implementation plan</div>
+  <h2>What gets built, in what order.</h2>
+
+  <h3>Now — this session</h3>
+  <ul class="compact">
+    <li>Write this design artifact <span class="pill" style="background:#7A9B6E">in progress</span></li>
+    <li>Build the <code>datacraft-Project/</code> scaffold end-to-end: CLAUDE.md, README, all folders + READMEs, skeleton template, sessions template, decisions template, four skill scaffolds, resources taxonomy, bridges README</li>
+  </ul>
+
+  <h3>Deferred — separate session, after Joe reviews</h3>
+  <ul class="compact">
+    <li>Canonical rename: <code>task-changelog/</code> → <code>task-sessions/</code>, expand template to capture what+why, add decisions template</li>
+    <li>Propagate to existing four starters: rename <code>docs/changelog/</code> → <code>docs/sessions/</code>, port new template, update CLAUDE.md references</li>
+    <li>Update parent <code>_starters/CLAUDE.md</code>: add fifth starter, document the capital-P rename convention, document companion-mode drop-in</li>
+  </ul>
+
+  <p class="legend">Order is deliberate. Build the new starter first so Joe can see it whole and react before any of the other four starters get touched. The canonical rename is mechanical work once the shape is approved.</p>
+</section>
+
+<section class="card">
+  <div class="tags">Open + deferred</div>
+  <h2>Things considered, parked, or future.</h2>
+
+  <h3>Test-learn-shrink as philosophy, not artifact.</h3>
+  <p>Wei Hao's fourth practice — thin slices, story splitting, evidence-driven shrinking — lives as guidance in <code>CLAUDE.md</code> rather than its own folder. The starter enables it via <code>prototypes/</code> + skeleton + the scope-trade conversation pattern, but doesn't impose its own splitting taxonomy.</p>
+
+  <h3>Client-facing dashboard generation.</h3>
+  <p>Charlie's pattern of generating a client-visible status dashboard (dropped into the client's FM web viewer) is the reason <code>deliverables/dashboards/</code> exists. The starter documents the pattern but ships no generator — too context-dependent.</p>
+
+  <h3>"My agent talks to your agent" async client involvement.</h3>
+  <p>Charlie called this out as a future direction. Not in scope. <code>bridges/</code> is currently for the human Claude↔ChatGPT PII shuttle, not for client-agent interop.</p>
+
+  <h3>Skills repo separation.</h3>
+  <p>Charlie's team maintains a shared GitHub repo of cross-project skills (with PRs). Joe has a similar setup with personal home-folder skills. This starter ships project-local skill scaffolds only — the cross-project versions stay in Joe's home folder. Documented in CLAUDE.md.</p>
+
+  <h3>Milestone retrospectives.</h3>
+  <p>When milestones are sprouted, each ends with a retrospective (lives in <code>milestones/M0-name/retro.md</code>). Pattern documented; not in the empty scaffold.</p>
+</section>
+
+<hr class="heavy">
+
+<p class="meta" style="margin-top: 3rem;">
+  <p><b>Sources:</b></p>
+  <p>• Charlie Bailey (Codence) — <em>AI in project management insights</em>, Granola transcript, Elevate FM 2026, 2026-06-04.</p>
+  <p>• Wei Hao (Direct Impact Solutions) — <em>Magic the Gathering insights</em>, Granola transcript, Elevate FM 2026, 2026-06-05.</p>
+  <p>• Matt Maher — <em>AI Has Started Building AI — and It's Already Here</em>, YouTube, 2026-06-08. Referenced reading: Anthropic's article on recursive self-improvement (linked from Maher's video). The Intent-layer addition came in the same design session after watching this.</p>
+  <p><b>This document:</b> The reference for why this starter looks the way it does. Survives in <code>docs/_design/</code> after the implementation lands. If something here turns out wrong, write a new design artifact next to it — don't edit history.</p>
+</p>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "dc-plugins",
+  "owner": {
+    "name": "Joe",
+    "email": "digitaljoed@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "pm",
+      "source": "./pm",
+      "description": "Project-management scaffold + session and delivery skills. /pm:scaffold starts a client engagement; whats-next, stepping-away, design-handoff, and html-artifacts support the work."
+    }
+  ]
+}

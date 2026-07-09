@@ -1,0 +1,20 @@
+.DS_Store
+.env
+.env.local
+*.log
+node_modules/
+__pycache__/
+.claude/settings.local.json
+
+# Bridges — manual PII shuttle. Contents are project-specific and often sensitive.
+_pm/bridges/inbox/*
+_pm/bridges/outbox/*
+!_pm/bridges/inbox/.gitkeep
+!_pm/bridges/outbox/.gitkeep
+!_pm/bridges/inbox/README.md
+!_pm/bridges/outbox/README.md
+
+# Recordings — typically large binary. Track via external storage.
+_pm/artifacts/recordings/*
+!_pm/artifacts/recordings/.gitkeep
+!_pm/artifacts/recordings/README.md
