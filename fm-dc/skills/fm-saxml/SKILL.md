@@ -1,31 +1,33 @@
 ---
-name: ddr
-description: Parse a FileMaker DDR / "Save a Copy as XML" export into analyzable per-object files AND an agent-readable knowledge base, so an agent can audit a FileMaker system and read/write its scripts and calcs as XML. Use when the user wants to parse, search, compare, or audit FileMaker database structure from a schema export (classic DDR or FM 2026 split-catalog), trace references/orphans, diff versions, or set up the script-XML round-trip.
+name: fm-saxml
+description: Parse a FileMaker Save-as-XML export (FM 2026 split-catalog) — or a classic DDR — into analyzable per-object files AND an agent-readable knowledge base, so an agent can read, audit, and diff a FileMaker system's structure. Use when the user has a schema export (Save a Copy as XML / Summary.xml + split catalogs, or a classic Database Design Report) and wants to parse, summarize, search, trace references/orphans, compare/diff versions, or stand up the script-XML round-trip. This reads and analyzes; to MUTATE a .fmp12 use fm-patch.
 argument-hint: "[command] [args] [options]"
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ---
 
-# FileMaker DDR → analyzable + agent-readable
+# FileMaker Save-as-XML / DDR → analyzable + agent-readable
 
-A FileMaker **DDR** (Database Design Report) is a full XML dump of a database's structure — tables, fields, scripts, layouts, relationships, custom functions, value lists (no record data). This skill turns that multi-megabyte dump into two things:
+A FileMaker schema export is a full XML dump of a database's structure — tables, fields, scripts, layouts, relationships, custom functions, value lists (no record data). The modern form is **"Save a Copy as XML"** (SaXML); the legacy form is the classic **DDR** (Database Design Report). This skill turns either into two things:
 
 1. **Per-object files** (`schema/parsed/<db>/<type>/…`) the analysis commands read.
-2. **An agent-facing knowledge base** (`schema/readable/<db>/`) — the context an agent loads to read and *write* FileMaker script/calc XML for that specific database.
+2. **An agent-facing knowledge base** (`schema/readable/<db>/`) — the context an agent loads to read and reason about a specific database (and feed the `fm-scripts` round-trip).
 
-The engine lives in this project's `scripts/` folder and carries no client data. No credentials needed — fully offline.
+The engine carries no client data. No credentials needed — fully offline.
+
+**Boundary:** `fm-saxml` **reads, analyzes, and diffs to understand**. To *change* a `.fmp12` (generate/apply/verify a patch), use **`fm-patch`**.
 
 ## When
 
-- You have a FileMaker schema export and need to understand or audit the system (tables, scripts, relationships, dependencies).
+- You have a Save-as-XML (or DDR) export and need to understand or audit the system (tables, scripts, relationships, dependencies).
 - You want to trace what references an object, find orphans, or diff two schema versions.
 - You're standing up the **script-XML round-trip** (see the `fm-scripts` skill and `docs/guides/script_xml_roundtrip.md`). This skill produces the knowledge base that powers it.
 
-## Two export formats — auto-detected
+## Two export formats — auto-detected (SaXML preferred)
 
 | Format | Looks like | Notes |
 |---|---|---|
-| **Classic DDR** (FM 12–22) | `File → Manage → Database Design Report → XML` → `<FMPReport>` + one XML per DB | The long-standing format. |
-| **FM 2026 "Save a Copy as XML"** | `File → Save a Copy as → XML` → `Summary.xml` + a *folder* of split-catalog files (`<FMSaveAsXML split_catalogs="True">`) | **Preferred when available** — pre-resolved references (inline `TableOccurrenceReference`/`FieldReference`/`ScriptReference`), per-object change metadata, and a `DDR_INFO` text store with readable step text. Powers exact dependency tracing. |
+| **Save a Copy as XML** (FM 2026, *preferred*) | `File → Save a Copy as → XML` → `Summary.xml` + a *folder* of split-catalog files (`<FMSaveAsXML split_catalogs="True">`) | The modern, ascending format. Pre-resolved references (inline `TableOccurrenceReference`/`FieldReference`/`ScriptReference`), per-object change metadata, and a `DDR_INFO` text store with readable step text. Powers exact dependency tracing. |
+| **Classic DDR** (FM 12–22, *legacy input*) | `File → Manage → Database Design Report → XML` → `<FMPReport>` + one XML per DB | The long-standing format — still auto-detected and supported for older clients. |
 
 `split` detects which it is. Hand it the `Summary.xml`, the catalog folder, or a single catalog file.
 
@@ -56,7 +58,7 @@ All commands accept `--output <path>` (save report) and `--json`. Starter conven
 - `custom_functions.md` — full custom-function bodies.
 - `scripts/<folder>/<name>.md` — each script's **Connects to** / **Called by** dependency manifest (exact, from resolved references) + indented pseudo-code.
 
-This is what makes the **script-XML round-trip** possible: an agent loads `readable/`, resolves every reference, and returns valid `fmxmlsnippet` to paste back into FileMaker. The paste formats themselves are covered by the vendored Kear skills (`filemaker-xml`, `filemaker-layout-xml`, `filemaker-field-xml`); validate snippets with `${CLAUDE_PLUGIN_ROOT}/tools/fmlint/validate_snippet.py` before pasting.
+This is what makes the **script-XML round-trip** possible: an agent loads `readable/`, resolves every reference, and returns valid `fmxmlsnippet` to paste back into FileMaker. The paste formats themselves are covered by the `fm-xml` skill; validate snippets with `${CLAUDE_PLUGIN_ROOT}/tools/fmlint/validate_snippet.py` before pasting.
 
 ## Format craft notes (FM 2026 split-catalog)
 

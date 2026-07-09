@@ -25,7 +25,7 @@ fm/           created by /fm-init — managed-file config, baseline export, patc
 ## Working rules
 
 - **Same-commit rule:** when work ships, remove it from `_pm/TASKS.md` and add it to today's session file in the same commit.
-- **Schema questions** run through the pipeline: export → `ddr.py split` → `summary`/`search`/`refs` (tools live in the fm-dc plugin; see the `ddr` skill).
+- **Schema questions** run through the pipeline: export → `ddr.py split` → `summary`/`search`/`refs` (tools live in the fm-dc plugin; see the `fm-saxml` skill).
 - **Changes to the .fmp12** go through the fm-patch skill / fm-patch-builder agent — never hand-applied without the backup→validate→smoke→verify sequence.
 - **Snippets are validated** with fmlint before any paste (fm-xml skill rule).
 - **Connection mode choice** (ProofKit MCP vs Data API vs OData vs pipeline) follows the fm-connections four-mode doctrine.

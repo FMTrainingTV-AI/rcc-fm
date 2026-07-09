@@ -39,3 +39,16 @@ Default stack: **Next.js (App Router) + `@proofkit/fmdapi` + `@proofkit/typegen`
 Overview of all three integration paths: [references/proofkit.md](references/proofkit.md).
 
 API layouts follow the project's prefix convention (`AI_*`, `zAPI_*`); web viewer apps share the same Data API layouts as agent access — see the fm-connections skill for the doctrine.
+
+## Migrating OFF FileMaker (different from the above)
+
+Everything above keeps FileMaker as the backend. When the goal is instead to **replace** FileMaker with a web stack, that's a different exercise — don't reach for ProofKit's fmdapi/OData bridges:
+
+- **Target stack:** Supabase (PostgreSQL + Auth + Storage) + Vercel (Next.js).
+- **Approach:** feature-by-feature migration, not big-bang.
+- **Data layer:** FM tables → Postgres tables; FM relationships → foreign keys + RLS policies.
+- **Business logic:** FM scripts → Edge Functions or API routes.
+- **UI:** FM layouts → React components.
+- **Auth:** FM privilege sets → Supabase Auth + RLS.
+
+Use `fm-saxml` to audit the source schema first, then map it over.

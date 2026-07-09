@@ -1,13 +1,15 @@
 ---
 name: fm-xml
 description: >
-  FileMaker XML in every form — generating paste-ready fmxmlsnippet XML for scripts,
+  The FileMaker XML wire format — generating paste-ready fmxmlsnippet XML for scripts,
   custom functions, layout objects, and field definitions; reviewing snippet XML for
-  silent paste-handler failures; and reading Save-as-XML / DDR export grammar.
+  silent paste-handler failures; and the fmxmlsnippet element/step-ID grammar itself.
   Use whenever the user wants FileMaker XML generated from a description or pseudocode,
-  pastes fmxmlsnippet XML to modify, mentions LayoutObjectList or FMObjectList, asks about
-  script step XML shapes, field definitions for Manage Database, or needs to understand
-  a Save a Copy as XML export's structure. Do not attempt FileMaker XML from memory alone —
+  mentions LayoutObjectList or FMObjectList, asks about the XML SHAPE of a script step or
+  field definition, or needs a snippet's format reviewed/validated. This owns the FORMAT.
+  To modify a pasted script's logic/targets against THIS project's schema → fm-scripts
+  (it drives the round-trip and consults this skill for the shape). To parse/audit a whole
+  Save-as-XML or DDR export → fm-saxml. Do not attempt FileMaker XML from memory alone —
   always load the matching guide below first.
 ---
 

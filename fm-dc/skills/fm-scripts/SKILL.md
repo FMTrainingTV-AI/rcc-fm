@@ -1,6 +1,6 @@
 ---
 name: fm-scripts
-description: Read, write, and modify FileMaker scripts and calculations as XML against THIS project's database. Use when the user pastes FileMaker script XML (fmxmlsnippet) and wants it changed, asks "write a script that…", asks what a script does or "what does X connect to / what calls X", or wants a calculation built/fixed with real schema awareness. Powers the paste-in → updated-XML round trip using the project's generated knowledge base.
+description: FileMaker scripting — write, read, and modify scripts against THIS project's database, plus script structure, error handling, PSOS, and the FM 2024–2026 AI/script-step catalog. Use when the user pastes FileMaker script XML (fmxmlsnippet) and wants it changed, asks "write a script that…", asks what a script does or "what does X connect to / what calls X", asks about a script step / error handling / PSOS / AI steps (Configure AI Account, Generate Response from Model), or wants a calculation wired into a script with real schema awareness. Powers the paste-in → updated-XML round trip using the project's generated knowledge base. (Pure calc-language questions → fm-core; fmxmlsnippet wire format → fm-xml.)
 argument-hint: "[paste a script, or describe what you want]"
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ---
@@ -30,7 +30,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/tools/ddr/ddr.py split schema/ddrs/<date>/Summary.
 python3 ${CLAUDE_PLUGIN_ROOT}/tools/ddr/ddr.py readable schema/parsed/
 ```
 
-Needs a schema export (classic DDR or FM 2026 Save-as-XML — auto-detected); see the `ddr` skill.
+Needs a schema export (classic DDR or FM 2026 Save-as-XML — auto-detected); see the `fm-saxml` skill.
 
 ## The four tasks this supports
 
@@ -39,11 +39,19 @@ Needs a schema export (classic DDR or FM 2026 Save-as-XML — auto-detected); se
 3. **Backtrack what a script connects to, then update it** — start from the script's `Connects to` block + `_xref.md` to understand impact, then return the updated XML.
 4. **Write a script from scratch** — compose from `_schema.md` + `custom_functions.md` + the step format.
 
+## Scripting patterns & step catalog
+
+Beyond the round-trip mechanics, this skill owns FileMaker **scripting knowledge**:
+- `references/scripting-patterns.md` — script structure, error handling, variable scoping, PSOS, Insert Text vs Set Variable, the **FM 2024–2026 AI script steps** (Configure AI Account, Generate Response from Model, embeddings, RAG), FM 2026 non-AI steps (persistent data, PDF suite, window UUID), and script gotchas.
+- `references/script-patterns.md` — additional script-step patterns and examples.
+
+(Calc-level syntax, JSON, and ExecuteSQL live in `fm-core`; the `fmxmlsnippet` wire format in `fm-xml`.)
+
 ## Writing valid paste-back XML
 
 The paste format is `fmxmlsnippet` (clipboard format) — **NOT** the DDR/`FMSaveAsXML` export
 format the knowledge base was built from. For the exact element structure, step type IDs,
-and worked examples, **use the vendored `filemaker-xml` skill** — do not
+and worked examples, **use the `fm-xml` skill** — do not
 reinvent the format. Non-negotiables:
 
 - Root is `<fmxmlsnippet type="FMObjectList">`; each step `<Step enable= id= name=>`.
