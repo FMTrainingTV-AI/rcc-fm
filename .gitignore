@@ -1,1 +1,5 @@
 .DS_Store
+
+# Personal dev tracking — never published to the marketplace.
+# Anchored to repo root so it does NOT match pm/template/_pm (the pm plugin's shipped template).
+/_pm/
