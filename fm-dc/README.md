@@ -22,11 +22,12 @@ Requirements: macOS, Python 3.10+, and for patching the Claris CLI tools (`FMDev
 ## Quickstart
 
 ```
-cd my-client-project/
-/fm-scaffold          # DataCraft project folder (minimized; --full / --client-kit for more)
-cp .env.example .env        # fill in FM credentials
-/fm-init              # adopt the .fmp12: doctor, config, baseline export, changelog
+cd my-client-project/          # a folder with your .fmp12 in it
+/fm-init                       # ensures structure, then adopts: doctor, config, baseline export, changelog
+cp .env.example .env           # fill in FM credentials (if the defaults don't fit)
 ```
+
+`/fm-init` scaffolds the project structure on its own (idempotent, never overwrites), so you don't need a separate step. Reach for **`/fm-scaffold`** directly only when you want structure *without* adopting a file yet — a greenfield project, or `--full` / `--client-kit` shapes.
 
 Then just work — the skills trigger on FileMaker topics. Check state anytime with `/fm-status`; undo with `/fm-rollback`; build the offline docs cache once with `/fm-docs-sync`.
 
