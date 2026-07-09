@@ -24,7 +24,7 @@ Claris publishes its entire help corpus as agent-friendly Markdown (llms.txt con
    curl -sL https://help.claris.com/markdown/en/pro-help/<topic>.md
    ```
    Valid pages start with YAML frontmatter (`---`); a body starting `<!DOCTYPE` means bad slug → 404 redirect. Don't guess slugs — the authoritative index is `https://help.claris.com/llms-full.txt`.
-3. **Build or refresh the cache:** run `/fm-dc:fm-docs-sync` (wraps `${CLAUDE_PLUGIN_ROOT}/tools/docs/sync_claris_docs.py`). Default docsets: pro-help, data-api-guide, odata-guide, app-upgrade-tool-guide, sql-reference.
+3. **Build or refresh the cache:** run `/fm-docs-sync` (wraps `${CLAUDE_PLUGIN_ROOT}/tools/docs/sync_claris_docs.py`). Default docsets: pro-help, data-api-guide, odata-guide, app-upgrade-tool-guide, sql-reference.
 
 ## URL pattern
 

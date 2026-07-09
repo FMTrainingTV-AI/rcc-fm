@@ -33,4 +33,4 @@ Initialize the current project for fm-dc-managed FileMaker development. Mirrors 
 
 5. **Seed `fm/changelog.md`** with a header and an `init` entry (date, files adopted, baseline paths). Every future patch/rollback appends here — it's the project's audit proxy.
 
-6. **Report:** doctor summary, managed files, baseline location, and what's now possible (fm-patch skill, `/fm-dc:fm-status`, `/fm-dc:fm-rollback`). Suggest `/fm-dc:fm-scaffold` if the project folder has no structure yet.
+6. **Report:** doctor summary, managed files, baseline location, and what's now possible (fm-patch skill, `/fm-status`, `/fm-rollback`). Suggest `/fm-scaffold` if the project folder has no structure yet.

@@ -6,14 +6,14 @@ This repo IS the fm-dc Claude Code plugin (see [SCOPE.md](SCOPE.md) for what/why
 
 ```
 .claude-plugin/plugin.json   manifest (bump version on every shipped change)
-commands/                    /fm-dc:* slash commands (prompt markdown, drive tools via ${CLAUDE_PLUGIN_ROOT})
+commands/                    /* slash commands (prompt markdown, drive tools via ${CLAUDE_PLUGIN_ROOT})
 agents/                      fm-patch-builder (transaction owner), fm-xml-validator (independent falsifier)
 skills/                      fm-core, fm-connections, fm-xml, fm-patch, fm-proofkit, fm-docs, ddr, fm-scripts
 tools/patch/                 vendored FM-Patch-Agent engine — see VENDOR.md; logic changes go upstream-style: edit + test here, note in VENDOR.md
 tools/ddr/  tools/fmlint/    vendored analysis + lint engines (VENDOR.md in each)
 tools/docs/  tools/doctor.py fm-dc-native utilities (TDD'd in tests/)
 tools/genobj/                Phase 3 stub — deterministic shape compiler
-templates/scaffold/          what /fm-dc:fm-scaffold copies (gitignore ships as gitignore.template)
+templates/scaffold/          what /fm-scaffold copies (gitignore ships as gitignore.template)
 tests/                       patch suite (131, incl. E2E vs real Claris tools) + native tool tests + prompt-battery.md
 resources/fmbase.fmp12       scaffold seed file (BASE + ProofKit) for E2E tests
 ```

@@ -64,7 +64,7 @@ Spec-driven schema builds (make a file match a JSON spec) use `gen_scaffold.py g
 
 ## Project artifact conventions
 
-Inside a project initialized by `/fm-dc:fm-init`:
+Inside a project initialized by `/fm-init`:
 
 ```
 fm/
@@ -75,7 +75,7 @@ fm/
 └── changelog.md      ← append-only log of every action taken against the file
 ```
 
-Every applied patch appends a changelog entry (timestamp, files, catalogs touched, patch path, verify verdict). `/fm-dc:fm-rollback` restores from `backups/` or a patch's `before/` state.
+Every applied patch appends a changelog entry (timestamp, files, catalogs touched, patch path, verify verdict). `/fm-rollback` restores from `backups/` or a patch's `before/` state.
 
 ## References
 

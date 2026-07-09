@@ -1,6 +1,6 @@
 # CLAUDE.md — <Project Name>
 
-FileMaker engagement workspace, scaffolded by the **fm-dc** plugin (`/fm-dc:fm-scaffold`). FM capability — patching, XML, connections, ProofKit, docs lookup — comes from the plugin's skills; this file only carries what is specific to THIS project.
+FileMaker engagement workspace, scaffolded by the **fm-dc** plugin (`/fm-scaffold`). FM capability — patching, XML, connections, ProofKit, docs lookup — comes from the plugin's skills; this file only carries what is specific to THIS project.
 
 ## Project facts (fill in)
 
@@ -18,7 +18,7 @@ _pm/          engagement management — skeleton.md (plan), TASKS.md (Current/Ne
 schema/       analysis pipeline — ddrs/ (raw exports, date-stamped) → parsed/ → readable/ (agent
               knowledge base) → reports/
 dev/          working scratch: XML drafts, POCs, throwaway proofs
-fm/           created by /fm-dc:fm-init — managed-file config, baseline export, patches, backups, changelog
+fm/           created by /fm-init — managed-file config, baseline export, patches, backups, changelog
 .env          FM credentials (gitignored): FM_HOST, FM_DATABASE, FM_USERNAME, FM_PASSWORD
 ```
 

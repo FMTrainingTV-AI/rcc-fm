@@ -17,18 +17,18 @@ pip3 install lxml requests python-dotenv
 
 > Developing the plugin (running the test suite) instead? Use a venv: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`.
 
-Requirements: macOS, Python 3.10+, and for patching the Claris CLI tools (`FMDeveloperTool`, `FMUpgradeTool` — ship with FileMaker Server; expected in `/usr/local/bin`). `/fm-dc:fm-init` runs a doctor that checks all of this.
+Requirements: macOS, Python 3.10+, and for patching the Claris CLI tools (`FMDeveloperTool`, `FMUpgradeTool` — ship with FileMaker Server; expected in `/usr/local/bin`). `/fm-init` runs a doctor that checks all of this.
 
 ## Quickstart
 
 ```
 cd my-client-project/
-/fm-dc:fm-scaffold          # DataCraft project folder (minimized; --full / --client-kit for more)
+/fm-scaffold          # DataCraft project folder (minimized; --full / --client-kit for more)
 cp .env.example .env        # fill in FM credentials
-/fm-dc:fm-init              # adopt the .fmp12: doctor, config, baseline export, changelog
+/fm-init              # adopt the .fmp12: doctor, config, baseline export, changelog
 ```
 
-Then just work — the skills trigger on FileMaker topics. Check state anytime with `/fm-dc:fm-status`; undo with `/fm-dc:fm-rollback`; build the offline docs cache once with `/fm-dc:fm-docs-sync`.
+Then just work — the skills trigger on FileMaker topics. Check state anytime with `/fm-status`; undo with `/fm-rollback`; build the offline docs cache once with `/fm-docs-sync`.
 
 ## What's inside
 
@@ -37,7 +37,7 @@ Then just work — the skills trigger on FileMaker topics. Check state anytime w
 | **Skills** | `fm-core` (calcs, script patterns, FM 2024–2026) · `fm-xml` (snippet/layout/field XML + SaXML grammar; never guesses shapes) · `fm-patch` (pipeline doctrine + patchability tiers) · `fm-connections` (four-mode doctrine: ProofKit MCP / Data API / OData / schema pipeline) · `fm-proofkit` (MCP, web viewers, TS toolchain) · `fm-docs` (local-first Claris docs) · `ddr` + `fm-scripts` (schema analysis + script round-trip) · `baseelements` (free BE plugin: HTTP, SMTP, encryption, zip, jq/XPath) · `mbs` (MonkeyBread plugin: CURL, email, files, and native-gap capabilities) |
 | **Agents** | `fm-patch-builder` — owns the patch transaction (gen → backup → validate → smoke → apply → verify), honors the operator selection gate · `fm-xml-validator` — independent falsifier (lint, scoped re-export verify, live probes) |
 | **Tools** | `tools/patch/` — export/parse/diff/review/gen_patch/apply/scaffold (vendored FM-Patch-Agent engine, 131 tests incl. E2E against real Claris tools) · `tools/ddr/` — DDR/SaXML analysis CLI · `tools/fmlint/` — snippet linter · `tools/docs/` — Claris docs mirror · `tools/doctor.py` |
-| **Commands** | `/fm-dc:fm-init` · `/fm-dc:fm-scaffold` · `/fm-dc:fm-status` · `/fm-dc:fm-rollback` · `/fm-dc:fm-docs-sync` |
+| **Commands** | `/fm-init` · `/fm-scaffold` · `/fm-status` · `/fm-rollback` · `/fm-docs-sync` |
 
 ## Safety model
 
@@ -45,7 +45,7 @@ Changes to a `.fmp12` only land through the pipeline: timestamped backup → `--
 
 ## Per-client kits (overlay model)
 
-fm-dc is the generic core. Each client engagement gets a thin overlay — schema bible, glossary, recipes, guardrails, connection facts — scaffolded by `/fm-dc:fm-scaffold --client-kit` and shipped to the client as its own plugin. Core updates never touch overlays.
+fm-dc is the generic core. Each client engagement gets a thin overlay — schema bible, glossary, recipes, guardrails, connection facts — scaffolded by `/fm-scaffold --client-kit` and shipped to the client as its own plugin. Core updates never touch overlays.
 
 ## Status
 

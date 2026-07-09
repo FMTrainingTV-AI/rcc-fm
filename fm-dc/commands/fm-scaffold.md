@@ -33,4 +33,4 @@ Scaffold the DataCraft project structure into the current directory from the plu
 
 4. **Fill what's knowable:** set the folder name into `CLAUDE.md`'s `<Project Name>` and `fm-dc.json`-less defaults; leave client-specific blanks alone.
 
-5. **Report** the tree created, files skipped, and next steps: fill `_pm/skeleton.md`, copy `.env.example` → `.env`, then `/fm-dc:fm-init` to adopt the .fmp12.
+5. **Report** the tree created, files skipped, and next steps: fill `_pm/skeleton.md`, copy `.env.example` → `.env`, then `/fm-init` to adopt the .fmp12.
