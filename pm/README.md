@@ -40,8 +40,7 @@ pm/
 │   ├── stepping-away/
 │   ├── design-handoff/
 │   └── html-artifacts/
-├── template/                ← the starter that /pm:scaffold copies
-└── _starter-design/         ← design rationale for the starter (reference only)
+└── template/                ← the starter that /pm:scaffold copies
 ```
 
 ## Updating

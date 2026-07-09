@@ -43,8 +43,7 @@ dc-plugins/
 │   ├── .claude-plugin/plugin.json
 │   ├── commands/            ← /pm:scaffold
 │   ├── skills/              ← whats-next, stepping-away, design-handoff, html-artifacts
-│   ├── template/            ← the starter /pm:scaffold copies
-│   └── _starter-design/     ← design rationale (reference only)
+│   └── template/            ← the starter /pm:scaffold copies
 └── fm-dc/                   ← plugin: agentic FileMaker development
     ├── .claude-plugin/plugin.json
     ├── commands/            ← /fm-dc:fm-init, fm-scaffold, fm-status, ...
