@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Agent_SaXML_Export v4 — TEMPLATE. Do not paste as-is.
+
+  Substitute every {{PLACEHOLDER}} with the target file's real names, then paste
+  the result into an empty script named Agent_SaXML_Export (steps-only paste).
+  See docs/guides/remote-file-agent-workflow.md §3 for the setup interview that
+  chooses these values.
+
+    {{FILE_NAME}}             the .fmp12 name (comment only)
+    {{DATE}}                  today, YYYY-MM-DD (comment only)
+    {{DROP_LAYOUT}}           layout showing the drop table (script navigates here)
+    {{DROP_TO}}               the drop table occurrence name (as used on that layout)
+    {{LABEL_FIELD}}           text field for a human-readable run label
+    {{PARAMS_FIELD}}          text field storing the request params (audit)
+    {{TEXT_FIELD}}            text field carrying the XML payload (the transport)
+    {{CONTAINER_FIELD}}       container field (bonus copy) — if the table has none,
+                              DELETE the single Set Field step that targets it
+
+  All ids are placeholder "1" — FileMaker resolves by exact name on paste
+  (case- and whitespace-sensitive) and stamps real ids.
+
+  v4 over v3: $chars is captured while still on the drop layout, so the result
+  JSON reports the real payload length (v3 read it after leaving the layout → 0).
+-->
+<fmxmlsnippet type="FMObjectList">
+  <Step enable="True" id="89" name="Comment">
+    <Text>Agent_SaXML_Export v4 ({{DATE}}) for {{FILE_NAME}} - triggered via OData Script.Agent_SaXML_Export. Param: {runId, options:{catalogs_included,...}}. Exports catalog-selected SaXML to temp, writes {{TEXT_FIELD}} (text transport) + {{CONTAINER_FIELD}} (bonus copy) on {{DROP_TO}}, returns JSON result incl. chars. Generated from the fm-rcc template.</Text>
+  </Step>
+  <Step enable="True" id="86" name="Set Error Capture">
+    <Set state="True"/>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[Get ( ScriptParameter )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$param</Name>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[Let ( r = JSONGetElement ( $param ; "runId" ) ; If ( IsEmpty ( r ) ; Get ( UUID ) ; r ) )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$runId</Name>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[JSONGetElement ( $param ; "options" )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$options</Name>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[Get ( TemporaryPath ) & "saxml_" & $runId & ".xml"]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$fmPath</Name>
+  </Step>
+  <Step enable="True" id="3" name="Save a Copy as XML">
+    <Option state="False"/>
+    <OutputEntireBinaryData state="False"/>
+    <SpecifyJSONOptions state="True"/>
+    <UniversalPathList>$fmPath</UniversalPathList>
+    <SaXML>
+      <JSONOptions>
+        <Calculation><![CDATA[$options]]></Calculation>
+      </JSONOptions>
+    </SaXML>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[Get ( LastError )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$exportErr</Name>
+  </Step>
+  <Step enable="True" id="68" name="If">
+    <Restore state="False"/>
+    <Calculation><![CDATA[$exportErr <> 0]]></Calculation>
+  </Step>
+  <Step enable="True" id="103" name="Exit Script">
+    <Calculation><![CDATA[JSONSetElement ( "{}" ; [ "error" ; $exportErr ; JSONNumber ] ; [ "stage" ; "export" ; JSONString ] ; [ "runId" ; $runId ; JSONString ] ; [ "path" ; $fmPath ; JSONString ] )]]></Calculation>
+  </Step>
+  <Step enable="True" id="70" name="End If"/>
+  <Step enable="True" id="6" name="Go to Layout">
+    <LayoutDestination value="SelectedLayout"/>
+    <Layout id="1" name="{{DROP_LAYOUT}}"/>
+  </Step>
+  <Step enable="True" id="7" name="New Record/Request"/>
+  <Step enable="True" id="76" name="Set Field">
+    <Calculation><![CDATA["Agent SaXML export " & $runId]]></Calculation>
+    <Field table="{{DROP_TO}}" id="1" name="{{LABEL_FIELD}}"/>
+  </Step>
+  <Step enable="True" id="76" name="Set Field">
+    <Calculation><![CDATA[$param]]></Calculation>
+    <Field table="{{DROP_TO}}" id="1" name="{{PARAMS_FIELD}}"/>
+  </Step>
+  <Step enable="True" id="160" name="Insert from URL">
+    <NoInteract state="True"/>
+    <DontEncodeURL state="False"/>
+    <SelectAll state="True"/>
+    <VerifySSLCertificates state="False"/>
+    <Calculation><![CDATA[ConvertFromFileMakerPath ( $fmPath ; URLPath )]]></Calculation>
+    <Text/>
+    <Field>$xmlBlob</Field>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[Get ( LastError )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$insertErr</Name>
+  </Step>
+  <Step enable="True" id="76" name="Set Field">
+    <Calculation><![CDATA[$xmlBlob]]></Calculation>
+    <Field table="{{DROP_TO}}" id="1" name="{{CONTAINER_FIELD}}"/>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[If ( $insertErr <> 0 ; $insertErr ; Get ( LastError ) )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$insertErr</Name>
+  </Step>
+  <Step enable="True" id="76" name="Set Field">
+    <Calculation><![CDATA[Let ( t = TextDecode ( $xmlBlob ; "utf-8" ) ; If ( IsEmpty ( t ) ; $xmlBlob ; t ) )]]></Calculation>
+    <Field table="{{DROP_TO}}" id="1" name="{{TEXT_FIELD}}"/>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[If ( $insertErr <> 0 ; $insertErr ; Get ( LastError ) )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$insertErr</Name>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[Length ( {{DROP_TO}}::{{TEXT_FIELD}} )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$chars</Name>
+  </Step>
+  <Step enable="True" id="141" name="Set Variable">
+    <Value>
+      <Calculation><![CDATA[Get ( RecordID )]]></Calculation>
+    </Value>
+    <Repetition>
+      <Calculation><![CDATA[1]]></Calculation>
+    </Repetition>
+    <Name>$recId</Name>
+  </Step>
+  <Step enable="True" id="75" name="Commit Records/Requests">
+    <NoInteract state="True"/>
+    <Option state="False"/>
+    <ESSForceCommit state="False"/>
+  </Step>
+  <Step enable="True" id="6" name="Go to Layout">
+    <LayoutDestination value="OriginalLayout"/>
+  </Step>
+  <Step enable="True" id="103" name="Exit Script">
+    <Calculation><![CDATA[JSONSetElement ( "{}" ; [ "error" ; $insertErr ; JSONNumber ] ; [ "stage" ; "done" ; JSONString ] ; [ "runId" ; $runId ; JSONString ] ; [ "path" ; $fmPath ; JSONString ] ; [ "recordId" ; $recId ; JSONNumber ] ; [ "chars" ; $chars ; JSONNumber ] )]]></Calculation>
+  </Step>
+</fmxmlsnippet>

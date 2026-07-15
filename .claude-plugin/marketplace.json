@@ -1,19 +1,14 @@
 {
-  "name": "dc-plugins",
+  "name": "rcc-fm",
   "owner": {
-    "name": "Joe",
+    "name": "Joe DaSilva",
     "email": "digitaljoed@gmail.com"
   },
   "plugins": [
     {
-      "name": "pm",
-      "source": "./pm",
-      "description": "Project-management scaffold + session and delivery skills. /pm:scaffold starts a client engagement; whats-next, stepping-away, design-handoff, and html-artifacts support the work."
-    },
-    {
-      "name": "fm-dc",
-      "source": "./fm-dc",
-      "description": "Agentic FileMaker development: SaXML patching with verify/rollback, DDR analysis, snippet validation, ProofKit and server-connection doctrine, and project scaffolding. Commands /fm-dc:fm-init, fm-scaffold, fm-status, fm-rollback, fm-docs-sync."
+      "name": "fm-rcc",
+      "source": "./fm-rcc",
+      "description": "Agentic FileMaker development: one-verb-per-skill (calc language, scripting, XML wire format, Save-as-XML/DDR analysis, patch pipeline, turnkey direct OData + Data API connection tools, connection router, ProofKit, docs) plus BaseElements + MBS plugin reference; SaXML patching with verify/rollback; project scaffolding."
     }
   ]
 }

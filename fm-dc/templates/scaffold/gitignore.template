@@ -1,8 +1,0 @@
-# Renamed to .gitignore by /fm-dc:fm-scaffold
-.env
-.DS_Store
-__pycache__/
-schema/parsed/
-schema/readable/
-fm/backups/
-*.fmp12

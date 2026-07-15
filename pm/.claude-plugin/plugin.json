@@ -1,9 +1,0 @@
-{
-  "name": "pm",
-  "version": "0.3.0",
-  "description": "Project-management scaffold + session and delivery skills. /pm-scaffold starts a client engagement from the datacraft starter; whats-next and stepping-away run the day; design-handoff and html-artifacts support delivery.",
-  "author": {
-    "name": "Joe",
-    "email": "digitaljoed@gmail.com"
-  }
-}

@@ -1,9 +1,0 @@
-{
-  "name": "fm-dc",
-  "version": "0.5.1",
-  "description": "DataCraft agentic FileMaker development: one-verb-per-skill (calc language, scripting, XML wire format, Save-as-XML/DDR analysis, patch pipeline, turnkey direct OData + Data API connection tools, connection router, ProofKit, docs) plus BaseElements + MBS plugin reference; SaXML patching with verify/rollback; project scaffolding.",
-  "author": {
-    "name": "Joe DaSilva / DataCraft Development",
-    "email": "joe@datacraftdev.com"
-  }
-}
