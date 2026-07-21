@@ -3,7 +3,7 @@
   "base_table": ["ProofKit*"],
   "table_occurrence": ["ProofKit*"],
   "field": ["ProofKit*::*"],
-  "script": ["Connect to MCP*", "FETCH CALLBACK*", "SendCallBack*", "get_script_names", "ProofKit*"],
+  "script": ["Connect to MCP*", "FETCH CALLBACK*", "SendCallBack*", "get_script_names", "ProofKit*", "PK_*"],
   "layout": ["ProofKit*"],
   "custom_function": ["ProofKit*"],
   "value_list": [],

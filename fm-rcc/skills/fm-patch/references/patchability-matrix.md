@@ -1,6 +1,6 @@
 # Patchability Matrix — what FMUpgradeTool can and can't patch
 
-*Last updated: 2026-06-14*
+*Last updated: 2026-07-21*
 
 What works, what's sketchy, and what still has to be done by hand — the traffic-light map the pipeline actually enforces. Every tier here is grounded in real FMUpgradeTool runs (dated in the code) plus Claris's documented limits — not guesses.
 
@@ -33,13 +33,14 @@ Operations map to FMUpgradeTool actions: **Add** = AddAction, **Change** = Repla
 | **Privilege sets** | 🔴 manual | 🔴 manual | 🔴 manual |
 | **Extended privileges** | 🔴 manual | 🔴 manual | 🔴 manual |
 | **Custom menus / menu sets** | 🔴 manual | 🔴 manual | 🔴 manual |
-| **Themes** | 🔴 manual | 🔴 manual | 🔴 manual |
+| **Themes** | 🔴 manual⁵ | 🔴 manual | 🔴 manual |
 | **File access / security** | 🔴 manual | 🔴 manual | 🔴 manual |
 
 ¹ Adds carry the layout intact (the win), but a *changed* layout re-diffs forever — FMUpgradeTool renumbers internal layout ids and flips an Options bit on insert; we hash layouts through a per-instance view to detect real changes, but replacing one in place is not yet proven.
 ² Added scripts carry their full step bodies (validated by round trip). A *changed* script whose steps differ is **rejected** — ReplaceAction swaps the catalog entry only (name/options), and the format forbids carrying step bodies in a Replace, so it would silently keep the old steps.
 ³ Custom functions **cannot be Replace'd** — an official App Upgrade Tool limitation. Change = delete + re-add by hand.
 ⁴ External data sources add the *reference* only; the path/credentials are environment-specific and still need a human.
+⁵ Theme **Add is capability-proven for custom themes** (probe, 2026-07-16): theme definitions harvested verbatim from a full SaXML export, wrapped in the standard patch envelope, applied via AddAction through the normal validate → smoke → backup pipeline — both `com.filemaker.theme.custom.*` themes landed and survived the re-export oracle, consistency clean. A **built-in** theme name (`com.filemaker.theme.enlightened`) silently dropped — engine-reserved; most likely rule: custom themes patchable, built-ins never. The row stays red because `gen_patch.py` does not yet emit Theme AddActions (queued blend item: teach the generator + update `PATCHABILITY` + the matrix-lock tests). Related: the generator matches layout→theme dependencies by NAME, not UUID — so a base file pre-loaded with the source's themes unblocks that source's themed layouts.
 
 ## Why the yellow and red exist — the gotchas behind the tiers
 
@@ -47,8 +48,10 @@ Operations map to FMUpgradeTool actions: **Add** = AddAction, **Change** = Repla
 - **SaveAsXML only emits "add" actions.** (Mislav Kos, Soliant — see Sources.) Modifications and deletions you build yourself, by hand, in the patch XML — which is exactly the surface area where things break.
 - **Calcs arrive commented-out.** A calculation that references fields by name gets silently wrapped in `/* ... */` on apply unless the patch carries a `ModifyAction` re-apply pass mirroring SaveAsXML's own shape (`_calc_modify_action`).
 - **Identity must be remapped.** Every new object needs a fresh UUID + a numeric id clear of production's id-space; the patch root version must match the export's SaXML version (FMDeveloperTool emits 2.2.3.0, FM Pro 2026 emits 2.3.0.0); `DDRREF` elements and `hash` attributes are stripped, and FMUpgradeTool stamps `SourceUUID`/`OwnerID` that must be stripped from content hashes or a perfect patch re-diffs as 100% changed.
-- **Security and UI catalogs are off-limits.** Accounts, privilege sets, extended privileges, custom menus, themes, file access — DeleteAction explicitly can't touch the privilege/accounts catalog, and the rest are unproven and high-risk. These stay human, always.
+- **Security and UI catalogs are off-limits.** Accounts, privilege sets, extended privileges, custom menus, file access — DeleteAction explicitly can't touch the privilege/accounts catalog, and the rest are unproven and high-risk. These stay human, always. (Themes are the one crack in this wall: Add is capability-proven for custom themes — see footnote 5 — but generator support is still queued, so the tier holds.)
 - **Duplicates force manual.** Any object whose name collides (same name twice) is forced to `manual` — resolve the duplicate in FileMaker before patching.
+- **Mid-patch abort at scale.** On a ~2,000-object patch, FMUpgradeTool printed "applied" but abandoned ~1,600 objects mid-patch — catalog-ordered: early catalogs landed, everything after silently dropped (observed 2026-07-16; a distinct mode from the per-object silent no-op). Countermeasures: the re-export verify catches it; **retry-before-drop** (re-apply a patch of just the unresolved objects before treating any of them as unpatchable — a one-bad-apply run otherwise looks like mass per-object refusal); **wave-apply** per catalog (tables+fields → TOs → relationships → VLs+CFs → scripts → layouts), verifying between waves; diagnose with `FMUpgradeTool -v` (verbose — the pipeline doesn't use it by default) to find where it stops.
+- **Cross-lineage silent no-ops.** Applying objects exported from one file lineage onto a base from a different lineage hit a new no-op class: relationship and custom-function AddActions "applied" per the banner but never landed (all 76 relationships, all 61 CFs in the observed run), while tables/fields/TOs/scripts landed fine. Same-lineage runs have never hit this. Suspects: order-at-scale vs. cross-lineage identity; levers: second-pass apply after tables/fields/TOs verify, `-v` diagnosis, `--regenerateGUIDs` on the base.
 
 ## Coverage vs. the universe — the "one of everything" file
 

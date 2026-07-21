@@ -13,7 +13,7 @@ Scaffold the standard project structure into the current directory from the plug
    mv -n gitignore.template .gitignore 2>/dev/null || rm -f gitignore.template
    ```
 
-   Result: `CLAUDE.md` (project stub), `_pm/` (skeleton.md, TASKS.md, sessions/), `schema/{ddrs,parsed,readable,reports}/`, `dev/`, `.env.example`, `.gitignore`.
+   Result: `CLAUDE.md` (project stub), `_pm/` (skeleton.md, TASKS.md, sessions/), `hostedFile.md` (connection facts to fill in), `scripts/` (export_saxml.py, parse_saxml.py — the remote-export toolbelt), `workflow/` (runbooks 01–08 + README), `logs/`, `specs/`, `schema/{ddrs,parsed,readable,reports}/`, `dev/`, `.env.example`, `.gitignore`.
 
 2. **`--full`** (in $ARGUMENTS) — additionally create the wider starter shape: `webviewer/`, `web/`, `docs/guides/`, `docs/reference/`, `docs/notes/`, plus empty `docs/quirks.md` and `docs/learnings.md` with one-line headers explaining their purpose.
 

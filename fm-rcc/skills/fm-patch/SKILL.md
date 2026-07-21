@@ -2,11 +2,13 @@
 name: fm-patch
 description: >
   Apply changes to FileMaker .fmp12 files programmatically — export Save-as-XML, diff dev
-  vs prod, generate and safely apply FMUpgradeTool patches, verify, and roll back.
+  vs prod, generate and safely apply FMUpgradeTool patches, verify, and roll back. Also
+  converts a Save-as-XML export into a NEW working .fmp12 (xml_to_fmp12, creation-only).
   Use when the user wants to patch/deploy/migrate changes into a FileMaker file, diff two
-  versions of a file, push dev work to prod, scaffold schema from a spec, inspect patch
-  history, or roll back a patch. Requires the Claris CLI tools (FMDeveloperTool,
-  FMUpgradeTool) and local file access — hosted files must be closed/downloaded first.
+  versions of a file, push dev work to prod, scaffold schema from a spec, rebuild a file
+  from an XML export, inspect patch history, or roll back a patch. Requires the Claris CLI
+  tools (FMDeveloperTool, FMUpgradeTool) and local file access — hosted files must be
+  closed/downloaded first (fm-admin can download them).
 ---
 
 # FileMaker Patching
@@ -50,6 +52,19 @@ python3 $PT/apply_patch.py verify --dev-export dev.xml --patched prod.fmp12 \
 
 Spec-driven schema builds (make a file match a JSON spec) use `gen_scaffold.py gen|verify` — additive-only reconciler; drift is reported, never destroyed.
 
+## XML → file: `xml_to_fmp12.py` (creation-only)
+
+There is no Claris CLI verb for XML → file. This tool fakes one: it copies the plugin's `resources/fmbase.fmp12` and grows it to match a Save-as-XML export via the pipeline above (diff → gen → apply → verify), invisibly, with two feedback loops — gen-prune (drop what the generator proves unbuildable) and verify-prune (drop what FMUpgradeTool silently no-ops).
+
+```bash
+python3 $PT/xml_to_fmp12.py --input export.xml [--out new.fmp12] [--base themed.fmp12] [--keep-workdir]
+```
+
+- **Creation-only, by contract:** the target must not exist; the tool never modifies an existing file — that's what keeps it outside the operator selection gate. To change a real file, use the pipeline above.
+- Manual-tier catalogs never travel (accounts, privilege sets, themes, menus). Themed layouts from the source unblock with a `--base` pre-loaded with those themes (layout→theme deps match by name).
+- A big result that converged suspiciously *thin* may be the mid-patch-abort mode over-pruning — see the matrix gotchas; re-run with `--keep-workdir` and diagnose with `FMUpgradeTool -v`.
+- Reference run: a 561 KB file → full XML → rebuilt and **verified clean** in ~20 s.
+
 ## Rules that are not suggestions
 
 1. **Never bypass the sequence** backup → validatePatch → smoke apply → in-place apply → verify. `apply_patch.py` encodes it; don't call FMUpgradeTool directly.
@@ -80,6 +95,7 @@ Every applied patch appends a changelog entry (timestamp, files, catalogs touche
 ## References
 
 - [references/patchability-matrix.md](references/patchability-matrix.md) — object type × operation grid with tiers; the ground truth for what FMUpgradeTool can do
+- [references/claris-cli-tools.md](references/claris-cli-tools.md) — the four Claris CLI tools (FMDeveloperTool, FMUpgradeTool, FMDataMigration, fmsadmin): verbs, division of labor, what has no verb (XML→file)
 - [references/workflows/export-xml.md](references/workflows/export-xml.md) — export SOP incl. open/close choreography and GUID stamping
 - [references/workflows/diff-review.md](references/workflows/diff-review.md) — parse/diff/review SOP
 - [references/workflows/patch-apply.md](references/workflows/patch-apply.md) — the full apply SOP (the fm-patch-builder agent's playbook)

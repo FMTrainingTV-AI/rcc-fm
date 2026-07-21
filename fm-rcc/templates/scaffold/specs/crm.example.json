@@ -1,0 +1,57 @@
+{
+  "file": "CRM",
+  "tables": {
+    "Accounts": {
+      "Name": "text",
+      "Type": {"type": "text", "comment": "Customer / Vendor / Partner"},
+      "Status": {"type": "text", "comment": "Active / Inactive"},
+      "Phone": "text",
+      "Email": "text",
+      "Website": "text",
+      "City": "text",
+      "Notes": "text",
+      "IDText": {"type": "calc", "result": "text",
+                 "formula": "GetAsText ( ID )",
+                 "comment": "Full-precision ID for the Data API (JSON mangles 57-digit numbers)"}
+    },
+    "Contacts": {
+      "fk_Account_ID": "fk",
+      "NameFirst": "text",
+      "NameLast": "text",
+      "FullName": {"type": "calc", "result": "text",
+                   "formula": "NameFirst & \" \" & NameLast"},
+      "Title": "text",
+      "Email": "text",
+      "Phone": "text",
+      "CellPhone": "text",
+      "Status": {"type": "text", "comment": "Active / Inactive"},
+      "Notes": "text",
+      "IDText": {"type": "calc", "result": "text",
+                 "formula": "GetAsText ( ID )",
+                 "comment": "Full-precision ID for the Data API"},
+      "AccountIDText": {"type": "calc", "result": "text",
+                        "formula": "GetAsText ( fk_Account_ID )",
+                        "comment": "Full-precision FK for the Data API"}
+    },
+    "Projects": {
+      "fk_Account_ID": "fk",
+      "fk_Contact_ID": "fk",
+      "Name": "text",
+      "Description": "text",
+      "Status": {"type": "text", "comment": "Planned / Active / On Hold / Closed"},
+      "DateStart": "date",
+      "DateDue": "date",
+      "DateEnd": "date",
+      "Notes": "text",
+      "IDText": {"type": "calc", "result": "text",
+                 "formula": "GetAsText ( ID )",
+                 "comment": "Full-precision ID for the Data API"},
+      "AccountIDText": {"type": "calc", "result": "text",
+                        "formula": "GetAsText ( fk_Account_ID )",
+                        "comment": "Full-precision FK for the Data API"},
+      "ContactIDText": {"type": "calc", "result": "text",
+                        "formula": "GetAsText ( fk_Contact_ID )",
+                        "comment": "Full-precision FK for the Data API"}
+    }
+  }
+}
