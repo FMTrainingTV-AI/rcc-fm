@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SAXML drop table - paste-in half 1 of 2 (see the scaffold's
+  workflow/02-install-the-export-script.md runbook).
+  Paste into File > Manage > Database > Tables (clipboard converter required:
+  MBS or FmClipTools), BEFORE pasting the export script - the script resolves
+  this table's names on paste. Creates the run-log + transport table that
+  Agent_SaXML_Export writes to. Paste-ready; no placeholders.
+-->
+<fmxmlsnippet type="FMObjectList">
+  <BaseTable comment="" name="SAXML">
+    <Field id="2" dataType="Text" fieldType="Normal" name="PrimaryKey">
+      <Comment>Unique identifier of each record in this table</Comment>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="SAXML"><![CDATA[Get( UUID )]]></Calculation>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="True"/>
+        <Unique value="True"/>
+        <Existing value="False"/>
+        <StrictValidation value="True"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="Unicode_Raw" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="3" dataType="TimeStamp" fieldType="Normal" name="CreationTimestamp">
+      <Comment>Date and time each record was created</Comment>
+      <AutoEnter allowEditing="False" value="CreationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <StrictDataType value="FourDigitYear"/>
+        <NotEmpty value="True"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="True"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="4" dataType="Text" fieldType="Normal" name="CreatedBy">
+      <Comment>Account name of the user who created each record</Comment>
+      <AutoEnter allowEditing="False" value="CreationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="True"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="True"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="5" dataType="TimeStamp" fieldType="Normal" name="ModificationTimestamp">
+      <Comment>Date and time each record was last modified</Comment>
+      <AutoEnter allowEditing="False" value="ModificationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <StrictDataType value="FourDigitYear"/>
+        <NotEmpty value="True"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="True"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="6" dataType="Text" fieldType="Normal" name="ModifiedBy">
+      <Comment>Account name of the user who last modified each record</Comment>
+      <AutoEnter allowEditing="False" value="ModificationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="True"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="True"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="8" dataType="Text" fieldType="Normal" name="RunID">
+      <Comment>Agent-supplied run identifier. OData lookup key: ?$filter=RunID eq 'xxx'</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="Unicode_Raw" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="9" dataType="Text" fieldType="Normal" name="Status">
+      <Comment>running | done | error</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="10" dataType="Text" fieldType="Normal" name="Stage">
+      <Comment>Furthest stage reached: export | read | done</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="11" dataType="Number" fieldType="Normal" name="ErrorCode">
+      <Comment>FileMaker error number, 0 when clean</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="12" dataType="Text" fieldType="Normal" name="ErrorMessage">
+      <Comment>Human-readable note about what failed</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="13" dataType="Text" fieldType="Normal" name="RequestJSON">
+      <Comment>Full script parameter as received, for replay and debugging</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="False" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="14" dataType="Text" fieldType="Normal" name="ExportPath">
+      <Comment>Temp path the SaXML copy was written to on the server</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="False" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="15" dataType="Binary" fieldType="Normal" name="XMLDrop">
+      <Comment>The exported XML as binary. Preferred bulk transport: GET .../SAXML('pk')/XMLDrop/$value</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="16" dataType="Text" fieldType="Normal" name="ResponseText">
+      <Comment>The exported XML as text. Never index this field - it can hold tens of MB</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="False" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+    <Field id="17" dataType="Number" fieldType="Normal" name="CharCount">
+      <Comment>Length of ResponseText, so the agent can size the read before fetching</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation messageCalc="False" message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Annotation>
+        <Text/>
+      </Annotation>
+      <DisplayNames enable="False"/>
+    </Field>
+  </BaseTable>
+</fmxmlsnippet>

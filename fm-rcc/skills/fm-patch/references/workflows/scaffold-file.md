@@ -60,9 +60,12 @@ wires it in FM Pro when wanted). Iteration = edit spec, re-run; additive-only.
 - Generator-owned layouts: the per-table full-field layouts belong to the
   scaffolder and are REGENERATED (delete+re-add) when fields change — never
   hand-customize them; custom layouts get different names and are never touched.
-- First delta run on a file containing real data: layout regen (delete+re-add) is
-  shape-proven but record preservation hasn't been exercised with data — spot-check
-  record counts in FileMaker after the run, then remove this line.
+- Layout regen (delete+re-add) preserves records — exercised 2026-07-22: all 11
+  layouts of a populated file regenerated with seeded records present;
+  `foundCount` and `totalRecordCount` unchanged after the run.
+- **Container fields in a spec will NOT land via patch** — Container-datatype
+  field adds silently no-op (matrix footnote 6). Deliver them via clipboard XML
+  after the scaffold run, or expect `verify` to flag them missing.
 - Hand-deleted objects in the target (deleted in FM after a scaffold run): ids are
   reallocated max+1, so prefer a fresh export + drift review before the next run.
 - Hand-added fields on scaffolded tables are reported as drift and survive in the

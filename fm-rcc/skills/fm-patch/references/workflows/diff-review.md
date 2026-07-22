@@ -66,6 +66,26 @@ Output: `diffs/diff.json` containing added/removed/modified entries keyed by cat
 
 Output: `review/review.html` — a self-contained, single-file HTML review UI. Open in any browser; no server required.
 
+**Direction (`--direction push|sync`, default `push`).** `push` treats dev as the source and prod as a file with its own history worth keeping:
+
+- Objects that exist only in prod render in a **"Prod-only — preserved"** section with a lock icon and **no checkbox in the DOM at all**. There is no click, keyboard, or select-all path that puts one into the selection, and the footer states the guarantee: *"N prod-only objects will be preserved. This patch cannot delete anything."*
+- `--direction sync` restores the old behaviour, where prod-only objects are selectable and compile to `DeleteAction`.
+
+Choose `push` unless the operator has explicitly asked to delete prod-only objects. `saxml_diff` labels prod-only objects `removed`, which reads like "the dev author deleted this" — but when prod has diverged on purpose, those rows are the operator's own work, and selecting one destroys it. `--allow-caution` alone is not consent for that; the deletion must be named.
+
+### 4a. Dependencies are closed, and gaps block
+
+Ticking any item auto-includes its full transitive dependency closure. Each auto-added row is highlighted, labelled with the tick that pulled it in (*"pulled in by PK_deploy_html (script)"*), and listed in a footer manifest grouped by cause. Unticking releases only what that tick alone pulled in.
+
+Two things this must never do, both of which were real bugs:
+
+- **Silently drop an unreachable dependency.** If a required object cannot travel — it is ignored, `manual`-tier, duplicate-named, or absent from the diff — the *dependent* is rendered **blocked**: unselectable, styled distinctly, and carrying the reason inline. Blocking is transitive, so anything downstream of a blocked object is blocked too. Resolve it in FileMaker (or widen `--ignore`) and re-run the diff.
+- **Cover only added objects.** `dependency_analysis()` probes added *and* modified items. Modified items compile to `ReplaceAction` and must be probed with `allow_caution=True`, or they fall out as a `ValueError` with no edges — which is exactly how modified objects came to have an empty graph.
+
+Each row also expands to an object profile: what it references (must travel with it) and what references it (breaks without it), with links that jump to the related row.
+
+**Watch the ignore list.** It exists to suppress add-on noise when the add-on is installed on *both* sides. When it is installed on the source side only, the add-on *is* the change set and the ignore list will hide most of it — you will move a handful of visible scripts whose tables and helpers stay behind. Symptom: a small selection with a `blocked` badge naming an ignored object. Fix: re-run `saxml_diff.py` with a narrower `--ignore`, then regenerate the review page.
+
 ### 5. Operator reviews and selects items
 
 - MUST open `review/review.html` in a browser and inspect each changed item.
@@ -91,6 +111,9 @@ Output: `review/review.html` — a self-contained, single-file HTML review UI. O
 - [ ] `review/review.html` opens in a browser without errors
 - [ ] `selections/selection.json` exists, is valid JSON, and contains at least one key
 - [ ] No `manual`-tier items in selection (they cannot be patched)
+- [ ] No `blocked` items in selection (the UI prevents it; verify anyway)
+- [ ] In `push` mode: no `removed` keys in the selection at all
+- [ ] The selection is dependency-closed — `gen_patch.py` raises `DependencyError` if not, which means the review page and the generator disagree and the page is the one to fix
 
 ## Error Handling
 

@@ -36,7 +36,7 @@ For finer control, import the client: `from fm_client import FileMakerClient` (p
 
 1. **The Data API needs a LAYOUT.** It reads/writes through layouts, not base tables. A table created over OData (`fm-odata`) is **invisible here until someone places it on a layout** in FileMaker Pro. `404`/"not found" on a table you know exists usually means "no API layout yet."
 2. **Dates are `MM/DD/YYYY`** on writes — ISO (`2026-07-15`) fails silently.
-3. **IDs as strings.** FileMaker's `ID` is a 57-digit UUID integer — always pass foreign keys as strings (the CLI handles it; hand-built JSON must too).
+3. **IDs as strings — and mirror them as text at the schema.** FileMaker's `ID` is a ~58-digit `Get ( UUIDNumber )` integer. FileMaker holds it exactly, but the Data API serialises Number fields as JSON numbers, so it arrives client-side as an IEEE double: `2231758849386322…942` becomes `2.23175884938632e+57` — every join and FK write built on it is silently truncated. Client-side normalisation only makes the wrongness consistent; the fix is schema-side: add a `GetAsText ( ID )` mirror (`IDText`, plus `<Parent>_IDText` per FK) and use those for all client-side joins (verified byte-identical round trip, 2026-07-22). Always pass FKs as strings (the CLI handles it; hand-built JSON must too).
 4. **Never send auto-managed fields** — `CreationAccount`, `ModifyAccount`, `CreationTimestamp`, `ModifyTimestamp`. FileMaker sets them; the CLI strips them with a warning.
 5. **Two ID systems:** `recordID` (simple sequential — for get/update/delete) vs `ID` (57-digit UUID — for foreign keys). Don't cross them.
 

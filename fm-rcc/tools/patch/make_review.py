@@ -42,13 +42,39 @@ KIND_LABELS = {
 }
 
 
-def build_html(diff: dict, deps: dict | None = None) -> str:
+def build_html(diff: dict, deps: dict | None = None,
+               blockers: dict | None = None, direction: str = "push") -> str:
     """Return a single self-contained HTML string for the diff review UI.
 
-    deps: optional {item_key: [dependency_keys]} adjacency map (from
-    gen_patch.dependency_graph). When present, ticking an item auto-includes
-    its dependencies in the UI so the downloaded selection is already closed.
+    deps: {item_key: [dependency_keys]} adjacency map (from
+    gen_patch.dependency_analysis). Ticking an item auto-includes its
+    dependencies so the downloaded selection is always closed.
+
+    blockers: {item_key: [{kind, name, reason}]} — dependencies that cannot be
+    auto-included (ignored, manual-tier, duplicate-named, or absent). An item
+    with blockers is rendered unselectable with the reason shown; it must never
+    reach gen_patch, because its closure would be missing a prerequisite.
+
+    direction:
+      "push" — dev is the source and prod keeps its own history. Objects that
+               exist only in prod are NOT selectable; they render in a
+               "Prod-only — preserved" section with no checkbox, so the patch
+               cannot delete the target's divergent work.
+      "sync" — prod-only objects are selectable and compile to DeleteAction.
     """
+    if direction not in ("push", "sync"):
+        raise ValueError(f"direction must be 'push' or 'sync', got {direction!r}")
+    deps = deps or {}
+    blockers = blockers or {}
+
+    # Reverse adjacency for the "referenced by" half of each object profile:
+    # what breaks if this object does not travel.
+    rdeps: dict[str, list[str]] = {}
+    for key, targets in deps.items():
+        for t in targets:
+            rdeps.setdefault(t, []).append(key)
+    for v in rdeps.values():
+        v.sort()
     # Escape the diff so it can be embedded inside a <script> block safely.
     # json.dumps produces valid JS (booleans/null map correctly).
     # Replacing "</" with "<\\/" prevents any "</script>" inside string
@@ -59,8 +85,12 @@ def build_html(diff: dict, deps: dict | None = None) -> str:
     # whole artifact). ! is '!' so the JSON stays valid.
     diff_json = (json.dumps(diff, ensure_ascii=False)
                  .replace("</", "<\\/").replace("<!--", "<\\u0021--"))
-    deps_json = (json.dumps(deps or {}, ensure_ascii=False)
+    deps_json = (json.dumps(deps, ensure_ascii=False)
                  .replace("</", "<\\/").replace("<!--", "<\\u0021--"))
+    blockers_json = (json.dumps(blockers, ensure_ascii=False)
+                     .replace("</", "<\\/").replace("<!--", "<\\u0021--"))
+    rdeps_json = (json.dumps(rdeps, ensure_ascii=False)
+                  .replace("</", "<\\/").replace("<!--", "<\\u0021--"))
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -497,6 +527,105 @@ pre.calc-pre {{
   display: none;
 }}
 .footer-warning.visible {{ display: block; }}
+
+/* ── Dependency + safety affordances ─────────────────────────────────────── */
+.dep-manifest {{
+  flex-basis: 100%;
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-small);
+  background: var(--added-bg);
+  border-left: 3px solid #198754;
+  border-radius: 3px;
+}}
+.dep-trail {{
+  font-size: 11px;
+  font-style: italic;
+  color: #198754;
+  margin-left: 6px;
+  white-space: nowrap;
+}}
+.blocked-pill {{
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 1px 6px;
+  border-radius: 9px;
+  background: #f8d7da;
+  color: #842029;
+  margin-left: 4px;
+}}
+.item-details.blocked > summary {{
+  background: #fff5f5;
+  opacity: .85;
+}}
+.item-details.blocked .item-name {{ text-decoration: line-through; }}
+.blocked-box, .preserved-box {{
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  line-height: 1.55;
+}}
+.blocked-box {{ background: #f8d7da; color: #842029; }}
+.preserved-box {{ background: #e7f1ff; color: #084298; }}
+.blocked-title, .preserved-title {{ font-weight: 700; margin-bottom: 4px; }}
+.blocked-list {{ margin: 4px 0 0 18px; }}
+.blocked-list li {{ margin-bottom: 3px; }}
+.preserved-section > summary {{ background: #e7f1ff; color: #084298; }}
+.preserved-blurb {{
+  padding: 8px 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #084298;
+  background: #f2f7ff;
+  border-bottom: 1px solid var(--border);
+}}
+.profile-grid {{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 8px 0;
+}}
+.profile-col {{
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  background: var(--surface);
+}}
+.profile-title {{ font-weight: 600; font-size: 12px; margin-bottom: 2px; }}
+.profile-help {{ font-size: 11px; color: var(--text-dim); margin-bottom: 6px; line-height: 1.45; }}
+.profile-empty {{ font-size: 12px; color: var(--text-dim); font-style: italic; }}
+.profile-list {{ margin: 0; padding-left: 16px; font-size: 12px; line-height: 1.7; }}
+.profile-link {{ color: var(--accent); text-decoration: none; }}
+.profile-link:hover {{ text-decoration: underline; }}
+.profile-kind {{ font-size: 10px; color: var(--text-dim); margin-left: 6px; }}
+.profile-flag.blocked {{
+  font-size: 10px; color: #842029; background: #f8d7da;
+  padding: 0 5px; border-radius: 8px; margin-left: 6px;
+}}
+.item-details.flash > summary {{
+  animation: flashrow 1.2s ease-out;
+}}
+@keyframes flashrow {{
+  0%   {{ background: #ffe69c; }}
+  100% {{ background: transparent; }}
+}}
+.lock-glyph {{
+  font-size: 12px;
+  margin-right: 2px;
+  opacity: .7;
+  flex-shrink: 0;
+}}
+.direction-pill {{
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+  background: #cfe2ff; color: #084298; margin-left: 8px;
+}}
+.direction-pill.danger {{ background: #f8d7da; color: #842029; }}
+.chip-preserved {{ margin-left: auto; }}
 .copy-feedback {{
   font-size: 12px;
   color: var(--text-dim);
@@ -527,6 +656,14 @@ pre.calc-pre {{
 
 <div class="container">
   <div id="sections-container"></div>
+  <details class="ignored-section preserved-section" id="preserved-section" style="display:none">
+    <summary>
+      <span id="preserved-label">Prod-only — preserved</span>
+      <span id="preserved-count" style="font-size:12px;color:var(--text-dim);font-weight:400;margin-left:4px"></span>
+    </summary>
+    <div class="preserved-blurb" id="preserved-blurb"></div>
+    <div class="ignored-section-body" id="preserved-body"></div>
+  </details>
   <details class="ignored-section" id="ignored-section" style="display:none">
     <summary>
       <span id="ignored-label">Ignored</span>
@@ -542,6 +679,7 @@ pre.calc-pre {{
     <button class="btn" onclick="downloadSelection()">Download selection.json</button>
     <button class="btn" onclick="copySelection()">Copy selection JSON</button>
     <span class="copy-feedback" id="copy-feedback"></span>
+    <div class="dep-manifest" id="dep-manifest" style="display:none"></div>
     <div class="footer-warning" id="footer-warning">
       ⚠ caution items require --allow-caution; the applier validates and smoke-applies on a copy first — always run the verify step after
     </div>
@@ -551,6 +689,11 @@ pre.calc-pre {{
 <script>
 const DIFF = {diff_json};
 const DEPS = {deps_json};
+const BLOCKERS = {blockers_json};
+const RDEPS = {rdeps_json};
+const DIRECTION = "{direction}";
+// In push mode prod-only objects are never selectable — see buildItemElement.
+const PUSH = DIRECTION === "push";
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 
@@ -598,8 +741,16 @@ const KIND_LABELS = {{
 const allItems = DIFF.items;  // already in display order from differ
 
 // Separate ignored from non-ignored
-const mainItems = allItems.filter(i => !i.ignored);
 const ignoredItems = allItems.filter(i => i.ignored);
+// In push mode prod-only ("removed") objects are the TARGET's own history.
+// They are split out entirely: no checkbox is ever created for them, so there
+// is no DOM or keyboard path that puts one into the selection.
+const preservedItems = PUSH ? allItems.filter(i => !i.ignored && i.change === "removed") : [];
+const mainItems = allItems.filter(i =>
+  !i.ignored && !(PUSH && i.change === "removed"));
+
+function blockersFor(key) {{ return BLOCKERS[key] || []; }}
+function isBlocked(key) {{ return blockersFor(key).length > 0; }}
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -610,30 +761,83 @@ const checkboxMap = {{}};
 // over DEPS, so ticking one object pulls in everything it needs.
 const manualSel = new Set();
 
+// Closure with provenance: `cause[k]` is the item that pulled k in, so the UI
+// can say WHY each auto-added row is there instead of silently ticking it.
+// Manual ticks are seeded first and never get a cause.
 function depClosure(seeds) {{
-  const out = new Set();
+  const out = new Set(seeds);
+  const cause = {{}};
   const stack = [...seeds];
   while (stack.length) {{
     const k = stack.pop();
-    if (out.has(k)) continue;
-    out.add(k);
     for (const d of (DEPS[k] || [])) {{
+      if (out.has(d)) continue;
       const cb = checkboxMap[d];
-      if (cb && !cb.disabled) stack.push(d);   // only auto-includable deps
+      if (!cb || cb.disabled) continue;   // blocked/unselectable: never auto-add
+      out.add(d);
+      cause[d] = k;
+      stack.push(d);
     }}
   }}
-  return out;
+  return {{set: out, cause}};
 }}
+
+// Walk provenance back to the tick the operator actually made.
+function rootCause(k, cause) {{
+  let c = cause[k], guard = 0;
+  while (c && cause[c] && guard++ < 500) c = cause[c];
+  return c;
+}}
+
+let lastClosure = {{set: new Set(), cause: {{}}}};
 
 function recompute() {{
   const eff = depClosure(manualSel);
+  lastClosure = eff;
   for (const [key, cb] of Object.entries(checkboxMap)) {{
-    const on = eff.has(key);
+    const on = eff.set.has(key);
     cb.checked = on;
     const row = cb.closest(".item-details");
-    if (row) row.classList.toggle("auto-dep", on && !manualSel.has(key));
+    if (!row) continue;
+    const auto = on && !manualSel.has(key);
+    row.classList.toggle("auto-dep", auto);
+    // Inline "pulled in by" trail on the row itself.
+    const trail = row.querySelector(".dep-trail");
+    if (trail) {{
+      if (auto) {{
+        const via = eff.cause[key], root = rootCause(key, eff.cause);
+        trail.textContent = (root && root !== via)
+          ? "pulled in by " + labelKey(via) + " → " + labelKey(root)
+          : "pulled in by " + labelKey(via);
+        trail.style.display = "";
+      }} else {{
+        trail.style.display = "none";
+      }}
+    }}
   }}
   updateFooter();
+}}
+
+function shortKey(k) {{
+  if (!k) return "?";
+  const i = k.indexOf(":");
+  return i < 0 ? k : k.slice(i + 1);
+}}
+
+// A base table, a table occurrence and a layout can all be called
+// "ProofKitApps". Anywhere a key is shown outside its own section, the kind
+// has to come with it or the list is unreadable.
+const KIND_SHORT = {{
+  base_table: "table", field: "field", table_occurrence: "TO",
+  relationship: "rel", value_list: "VL", custom_function: "CF",
+  script: "script", layout: "layout", external_data_source: "source"
+}};
+function labelKey(k) {{
+  if (!k) return "?";
+  const i = k.indexOf(":");
+  if (i < 0) return k;
+  const kind = k.slice(0, i);
+  return shortKey(k) + " (" + (KIND_SHORT[kind] || kind) + ")";
 }}
 
 function onItemToggle(e) {{
@@ -677,6 +881,19 @@ function buildHeader() {{
     countsEl.appendChild(p);
   }}
 
+  // Which direction this page was generated for. Without this the two modes
+  // look identical until you go hunting for a checkbox that isn't there.
+  const dirPill = el("span", {{className: "direction-pill"}});
+  dirPill.textContent = PUSH ? "one-way push · prod-only preserved"
+                             : "sync · prod-only objects CAN be deleted";
+  dirPill.title = PUSH
+    ? "Dev is the source. Objects that exist only in prod are preserved and "
+      + "cannot be selected; this patch cannot delete anything."
+    : "Prod-only objects are selectable and compile to DeleteAction. "
+      + "Requires --allow-caution.";
+  if (!PUSH) dirPill.classList.add("danger");
+  countsEl.appendChild(dirPill);
+
   const versionSpan = el("span", {{className: "header-version"}});
   versionSpan.textContent = "saxml " + (meta.saxml_version || "");
   countsEl.appendChild(versionSpan);
@@ -686,7 +903,11 @@ function buildHeader() {{
 
 function buildFilterBar() {{
   const bar = document.getElementById("filter-bar");
-  const filters = ["All", "Added", "Removed", "Modified"];
+  // In push mode prod-only objects live outside the filterable sections, so a
+  // "Removed" chip would always match nothing. Swap it for a chip that jumps
+  // to the preserved list instead.
+  const filters = PUSH ? ["All", "Added", "Modified"]
+                       : ["All", "Added", "Removed", "Modified"];
   if (ignoredItems.length) filters.push("Ignored");
 
   for (const f of filters) {{
@@ -696,6 +917,20 @@ function buildFilterBar() {{
       onclick: () => setFilter(f)
     }});
     chip.dataset.filter = f;
+    bar.appendChild(chip);
+  }}
+
+  if (PUSH && preservedItems.length) {{
+    const chip = el("button", {{
+      className: "chip chip-preserved",
+      textContent: "🔒 Prod-only (" + preservedItems.length + ")",
+      title: "Objects that exist only in prod. Preserved, not selectable.",
+      onclick: () => {{
+        const sec = document.getElementById("preserved-section");
+        sec.open = true;
+        sec.scrollIntoView({{behavior: "smooth", block: "start"}});
+      }}
+    }});
     bar.appendChild(chip);
   }}
 }}
@@ -775,6 +1010,49 @@ function makeJsonPanel(label, obj, panelClass) {{
   return wrapper;
 }}
 
+// One column of the object profile: a titled, explained list of related keys,
+// each marked with whether it can travel.
+function refColumn(title, keys, help) {{
+  const col = el("div", {{className: "profile-col"}});
+  col.appendChild(el("div", {{className: "profile-title"}}, title));
+  col.appendChild(el("div", {{className: "profile-help"}}, help));
+  if (!keys.length) {{
+    col.appendChild(el("div", {{className: "profile-empty"}}, "none"));
+    return col;
+  }}
+  const ul = el("ul", {{className: "profile-list"}});
+  for (const k of keys) {{
+    const li = el("li", {{}});
+    const a = el("a", {{className: "profile-link", href: "#"}}, shortKey(k));
+    a.title = k;
+    a.addEventListener("click", ev => {{ ev.preventDefault(); revealItem(k); }});
+    li.appendChild(a);
+    const kindTag = el("span", {{className: "profile-kind"}},
+                       KIND_SHORT[k.split(":")[0]] || k.split(":")[0]);
+    li.appendChild(kindTag);
+    if (isBlocked(k)) li.appendChild(el("span", {{className: "profile-flag blocked"}}, "blocked"));
+    ul.appendChild(li);
+  }}
+  col.appendChild(ul);
+  return col;
+}}
+
+// Jump to a related object and flash it, so the profile links are navigable.
+function revealItem(key) {{
+  const row = document.querySelector('.item-details[data-key="' + CSS.escape(key) + '"]');
+  if (!row) return;
+  // A filter may be hiding the target, and it may live inside a collapsed
+  // <details> section — clear both before scrolling or the jump goes nowhere.
+  if (row.classList.contains("hidden")) setFilter("All");
+  for (let p = row.parentElement; p; p = p.parentElement) {{
+    if (p.tagName === "DETAILS") p.open = true;
+  }}
+  row.open = true;
+  row.scrollIntoView({{behavior: "smooth", block: "center"}});
+  row.classList.add("flash");
+  setTimeout(() => row.classList.remove("flash"), 1200);
+}}
+
 // ── Build a single item element ───────────────────────────────────────────────
 
 function buildItemElement(item) {{
@@ -783,7 +1061,13 @@ function buildItemElement(item) {{
     ? item.table + "::" + item.name
     : item.name;
 
-  const isDisabled = item.patchability === "manual" || item.ignored;
+  const blocks = blockersFor(item.key);
+  // Unselectable for any of four reasons. The blocker case is the new one: a
+  // dependency exists that cannot travel, so ticking this would compile a
+  // patch missing a prerequisite. Previously the closure dropped it silently.
+  const isDisabled = item.patchability === "manual" || item.ignored
+                  || blocks.length > 0
+                  || (PUSH && item.change === "removed");
 
   // Patchability icon
   const patchIcon = item.patchability === "proven" ? "🟢"
@@ -792,22 +1076,33 @@ function buildItemElement(item) {{
 
   // Build the <details> element
   const details = document.createElement("details");
-  details.className = "item-details";
+  details.className = "item-details" + (blocks.length ? " blocked" : "");
   details.dataset.change = item.change;
+  details.dataset.key = item.key;
 
   // Summary line (checkbox + name + badges)
   const summary = document.createElement("summary");
 
-  // Checkbox
-  const cb = document.createElement("input");
-  cb.type = "checkbox";
-  cb.className = "item-checkbox";
-  cb.disabled = isDisabled;
-  cb.dataset.key = item.key;
-  cb.dataset.patchability = item.patchability;
-  cb.addEventListener("change", onItemToggle);
-  if (!isDisabled) checkboxMap[item.key] = cb;
-  summary.appendChild(cb);
+  // Checkbox. For prod-only objects in push mode NO input is created at all —
+  // the guarantee is structural (there is nothing to tick, in the DOM or via
+  // the keyboard), not a disabled attribute that can be flipped in devtools.
+  const preserved = PUSH && item.change === "removed";
+  if (preserved) {{
+    const lock = el("span", {{className: "lock-glyph",
+                             title: "prod-only — preserved, cannot be selected"}});
+    lock.textContent = "🔒";
+    summary.appendChild(lock);
+  }} else {{
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.className = "item-checkbox";
+    cb.disabled = isDisabled;
+    cb.dataset.key = item.key;
+    cb.dataset.patchability = item.patchability;
+    cb.addEventListener("change", onItemToggle);
+    if (!isDisabled) checkboxMap[item.key] = cb;
+    summary.appendChild(cb);
+  }}
 
   // Name
   const nameSpan = document.createElement("span");
@@ -832,11 +1127,63 @@ function buildItemElement(item) {{
     badges.appendChild(dupIcon);
   }}
 
+  if (blocks.length) {{
+    const b = el("span", {{className: "blocked-pill",
+                          title: blocks.map(x => x.name + " — " + x.reason).join("\\n")}});
+    b.textContent = "blocked";
+    badges.appendChild(b);
+  }}
+
+  // "pulled in by X" — populated by recompute() when auto-included.
+  const trail = el("span", {{className: "dep-trail"}});
+  trail.style.display = "none";
+  badges.appendChild(trail);
+
   summary.appendChild(badges);
   details.appendChild(summary);
 
   // Details body
   const body = el("div", {{className: "details-body"}});
+
+  // ── Why this cannot be selected ──────────────────────────────────────────
+  if (blocks.length) {{
+    const box = el("div", {{className: "blocked-box"}});
+    box.appendChild(el("div", {{className: "blocked-title"}},
+      "Blocked — cannot be included in a patch"));
+    const ul = el("ul", {{className: "blocked-list"}});
+    for (const b of blocks) {{
+      const li = el("li", {{}});
+      li.appendChild(el("strong", {{}}, b.kind + " " + b.name));
+      li.appendChild(document.createTextNode(" — " + b.reason));
+      ul.appendChild(li);
+    }}
+    box.appendChild(ul);
+    body.appendChild(box);
+  }}
+
+  if (PUSH && item.change === "removed") {{
+    const box = el("div", {{className: "preserved-box"}});
+    box.appendChild(el("div", {{className: "preserved-title"}}, "Prod-only — preserved"));
+    box.appendChild(el("div", {{}},
+      "This object exists in prod but not in dev. In push mode it is left "
+      + "exactly as it is; the generated patch contains no instruction that "
+      + "touches it. Switch to --direction sync only if you intend to DELETE it."));
+    body.appendChild(box);
+  }}
+
+  // ── Object profile: what it needs, and what needs it ─────────────────────
+  const out = (DEPS[item.key] || []);
+  const inc = (RDEPS[item.key] || []);
+  if (out.length || inc.length) {{
+    const prof = el("div", {{className: "profile-grid"}});
+    prof.appendChild(refColumn("References — must travel with it", out,
+      "Everything this object needs that prod does not already have. "
+      + "Ticking this row pulls all of it in automatically."));
+    prof.appendChild(refColumn("Referenced by — breaks without it", inc,
+      "These objects depend on this one. Selecting any of them pulls this "
+      + "row in too."));
+    body.appendChild(prof);
+  }}
 
   if (item.summary) {{
     const summaryText = el("div", {{className: "details-summary-text"}});
@@ -922,8 +1269,26 @@ function buildSections() {{
     container.appendChild(section);
   }}
 
-  // Build ignored section
+  buildPreservedSection();
   buildIgnoredSection();
+}}
+
+// Prod-only objects in push mode. These render WITHOUT checkboxes — the safety
+// property is structural, not a disabled attribute someone can flip in devtools.
+function buildPreservedSection() {{
+  if (!preservedItems.length) return;
+  const sec = document.getElementById("preserved-section");
+  sec.style.display = "";
+  document.getElementById("preserved-count").textContent =
+    "(" + preservedItems.length + ")";
+  document.getElementById("preserved-blurb").textContent =
+    "These objects exist in prod but not in dev — the target file's own "
+    + "history. This is a one-way push, so they are not selectable and the "
+    + "generated patch contains nothing that touches them. To delete them "
+    + "instead, regenerate this page with --direction sync.";
+  const body = document.getElementById("preserved-body");
+  body.innerHTML = "";
+  for (const item of preservedItems) body.appendChild(buildItemElement(item));
 }}
 
 function buildIgnoredSection() {{
@@ -1000,7 +1365,33 @@ function updateFooter() {{
   let txt = selected.length + " selected (" +
     provenCount + " proven / " + cautionCount + " caution)";
   if (autoItems.length) txt += " · " + autoItems.length + " pulled in as dependencies";
+  if (preservedItems.length) {{
+    txt += " · " + preservedItems.length + " prod-only preserved (this patch cannot delete anything)";
+  }}
   countEl.textContent = txt;
+
+  // Manifest: exactly what each tick dragged along, grouped by the tick that
+  // caused it. "Loud" auto-include — the operator reads the full consequence
+  // of a checkbox rather than discovering it in the patch.
+  const manifest = document.getElementById("dep-manifest");
+  if (manifest) {{
+    if (!autoItems.length) {{
+      manifest.style.display = "none";
+      manifest.innerHTML = "";
+    }} else {{
+      const groups = {{}};
+      for (const it of autoItems) {{
+        const root = rootCause(it.key, lastClosure.cause) || "(unknown)";
+        (groups[root] = groups[root] || []).push(it.key);
+      }}
+      const parts = Object.keys(groups).sort().map(root =>
+        "<strong>" + esc(labelKey(root)) + "</strong> pulled in " +
+        groups[root].length + ": " +
+        groups[root].sort().map(k => esc(labelKey(k))).join(", "));
+      manifest.innerHTML = "Auto-included &mdash; " + parts.join(" &nbsp;·&nbsp; ");
+      manifest.style.display = "";
+    }}
+  }}
 
   const warningEl = document.getElementById("footer-warning");
   warningEl.classList.toggle("visible", cautionCount > 0);
@@ -1064,29 +1455,32 @@ document.addEventListener("DOMContentLoaded", init);
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
-def _compute_deps(diff: dict) -> dict:
-    """Best-effort dependency graph from the exports named in diff.meta.
+def _compute_deps(diff: dict, direction: str = "push") -> dict:
+    """Best-effort dependency analysis from the exports named in diff.meta.
 
-    Returns {} (with a stderr note) if the exports aren't available or anything
-    fails — the review page still works, just without dependency auto-include.
+    Returns {"deps": {}, "blockers": {}} (with a stderr note) if the exports
+    aren't available or anything fails — the review page still works, just
+    without dependency auto-include.
     """
+    empty = {"deps": {}, "blockers": {}}
     meta = diff.get("meta", {})
     dev_export, prod_export = meta.get("dev_export"), meta.get("prod_export")
     if not (dev_export and prod_export
             and Path(dev_export).exists() and Path(prod_export).exists()):
         print("note: dev/prod exports not available; dependency auto-include disabled",
               file=sys.stderr)
-        return {}
+        return empty
     try:
         from lxml import etree
         import saxml_parser as P
         import gen_patch
         dev_root = etree.parse(P.open_fmsavexml(dev_export)).getroot()
         prod_root = etree.parse(P.open_fmsavexml(prod_export)).getroot()
-        return gen_patch.dependency_graph(dev_root, prod_root, diff)
+        return gen_patch.dependency_analysis(dev_root, prod_root, diff,
+                                             direction=direction)
     except Exception as exc:  # noqa: BLE001 — never block the review artifact
         print(f"warning: dependency graph unavailable ({exc})", file=sys.stderr)
-        return {}
+        return empty
 
 
 def main() -> None:
@@ -1097,13 +1491,21 @@ def main() -> None:
     parser.add_argument("-o", "--output", default="-", help="Output file (default: stdout)")
     parser.add_argument("--no-deps", action="store_true",
                         help="skip the dependency graph (no auto-include on tick)")
+    parser.add_argument("--direction", choices=("push", "sync"), default="push",
+                        help="push (default): dev is the source and prod-only "
+                             "objects are preserved, never selectable — the "
+                             "patch cannot delete the target's own work. "
+                             "sync: prod-only objects are selectable and "
+                             "compile to DeleteAction.")
     args = parser.parse_args()
 
     with open(args.diff_json, encoding="utf-8") as f:
         diff = json.load(f)
 
-    deps = {} if args.no_deps else _compute_deps(diff)
-    html = build_html(diff, deps)
+    analysis = {"deps": {}, "blockers": {}} if args.no_deps \
+        else _compute_deps(diff, args.direction)
+    html = build_html(diff, analysis.get("deps"), analysis.get("blockers"),
+                      direction=args.direction)
 
     if args.output == "-":
         sys.stdout.write(html)

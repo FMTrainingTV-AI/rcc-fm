@@ -37,6 +37,9 @@ go.** New numbered steps the project grows follow the same convention:
 3. **Result** — how we confirmed it worked — captured after it's done, never
    written speculatively.
 
-The export-script XML template (`{{PLACEHOLDER}}` markers — substituted per
-file during the doc-02 interview) ships in the plugin:
-`${CLAUDE_PLUGIN_ROOT}/templates/agent-saxml-export.template.xml`.
+The export-install assets ship in the plugin: the standard paste-in pair
+`${CLAUDE_PLUGIN_ROOT}/templates/saxml-table.xml` +
+`templates/agent-saxml-export-v5.xml` (doc 02's default — no placeholders),
+and the legacy `templates/agent-saxml-export.template.xml`
+(`{{PLACEHOLDER}}` markers, substituted per file in doc 02's custom-install
+interview).

@@ -38,7 +38,10 @@ python3 $PT/saxml_parser.py prod.xml -o prod_parsed
 python3 $PT/saxml_diff.py dev_parsed prod_parsed -o diff.json
 
 # 4. Human review — self-contained HTML with checkboxes; operator downloads selection.json
-python3 $PT/make_review.py diff.json -o review.html
+#    --direction push (DEFAULT): prod-only objects are preserved and cannot be
+#    selected, so the patch can never delete the target's own divergent work.
+#    Ticking anything auto-includes its full dependency closure.
+python3 $PT/make_review.py diff.json -o review.html            # [--direction sync]
 
 # 5. Compile the patch from the approved selection
 python3 $PT/gen_patch.py --dev-export dev.xml --prod-export prod.xml \
@@ -74,8 +77,24 @@ python3 $PT/xml_to_fmp12.py --input export.xml [--out new.fmp12] [--base themed.
    - `caution` → requires `--allow-caution` AND explicit human acknowledgment of the specific risk
    - `manual` → the generator refuses; deliver via clipboard XML (fm-xml skill) or document as a manual step. Accounts/privilege sets have no clipboard path either — always manual.
 4. **Locked files refuse to patch** (lsof check). Ask the user to close the file in FileMaker Pro; `fm_export.py` can close/reopen automatically for exports only.
-5. **Heavy transactions go to the `fm-patch-builder` agent** — a full patch cycle produces thousands of lines of tool output the main conversation doesn't need. Delegate when the change set is approved; the agent returns paths + verify verdict.
-6. **Verification of a landed patch belongs to `fm-xml-validator`** when independence matters (the builder should not grade its own homework).
+5. **The review gate is dependency-closed and one-way by default.** Two
+   properties the operator is entitled to assume, and which you must not
+   quietly weaken:
+   - **Prod-only objects are preserved.** In `push` mode (the default) an
+     object that exists in prod but not dev renders with no checkbox at all —
+     it is the target file's own history. Reaching for `--direction sync` turns
+     those into `DeleteAction`s and needs explicit, specific human consent for
+     the deletion, not just `--allow-caution`.
+   - **Ticking one object pulls its whole closure.** If a dependency cannot
+     travel (ignored, manual-tier, duplicate-named, absent), the dependent is
+     rendered **blocked** and cannot be selected — never silently dropped from
+     the closure. A blocked item must be resolved in FileMaker first.
+
+   Never hand-write `selection.json`, and never synthesize it "from the obvious
+   proven items." The operator ticks boxes in the HTML; that selection is the
+   gate. Summarising the diff for them is help; choosing for them is not.
+6. **Heavy transactions go to the `fm-patch-builder` agent** — a full patch cycle produces thousands of lines of tool output the main conversation doesn't need. Delegate when the change set is approved; the agent returns paths + verify verdict.
+7. **Verification of a landed patch belongs to `fm-xml-validator`** when independence matters (the builder should not grade its own homework).
 
 ## Project artifact conventions
 

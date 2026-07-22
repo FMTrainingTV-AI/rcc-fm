@@ -26,7 +26,16 @@ KINDS = {  # kind -> (snapshot file, shallow attrs compared for 'modified' detai
 PATCHABILITY = {
     "added": {"base_table": "proven", "field": "proven", "table_occurrence": "proven",
               "relationship": "proven", "layout": "proven", "script": "caution",
-              "value_list": "caution", "custom_function": "caution", "external_data_source": "caution"},
+              "value_list": "caution",
+              # custom_function ADD silently no-ops. The matrix rated this
+              # caution on the docs; a real run (2026-07-22, FMUpgradeTool
+              # 22.0.5.500) proved otherwise: a patch carrying two
+              # <CustomFunction> elements inside CustomFunctionsCatalog printed
+              # "Patch File Applied" and produced a file with ZERO custom
+              # functions. Nothing lands and nothing errors. Manual only —
+              # deliver via clipboard XML (fm-xml skill) instead.
+              "custom_function": "manual",
+              "external_data_source": "caution"},
     "modified": {"field": "caution", "script": "caution"},   # everything else: manual
     "removed": {"base_table": "caution", "field": "caution", "table_occurrence": "caution",
                 "script": "caution", "layout": "caution", "value_list": "caution",
@@ -89,6 +98,15 @@ def diff_snapshots(dev_dir: Path, prod_dir: Path, ignore: dict) -> dict:
             }
             if d and not p:
                 tier = PATCHABILITY["added"].get(kind, "manual")
+                # Container field Add silently no-ops (proven 2026-07-22,
+                # FMUpgradeTool 22.0.5.500): validatePatch passed, smoke
+                # passed, "Patch File Applied" printed, fields absent on
+                # re-export. Not the storage XML — a corrected
+                # <Storage global="False" maxRepetitions="1"/> no-oped
+                # identically. It is the datatype. Deliver containers via
+                # clipboard XML (fm-xml skill) instead.
+                if kind == "field" and d.get("datatype") == "Container":
+                    tier = "manual"
                 if key in dupes:
                     tier = "manual"
                 items.append(base | {"change": "added",

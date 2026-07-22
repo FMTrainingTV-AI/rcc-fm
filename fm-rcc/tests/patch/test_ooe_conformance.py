@@ -37,9 +37,16 @@ EXPECTED_COUNTS = {
 EXPECTED_ADDED = {
     "base_table": "proven", "field": "proven", "table_occurrence": "proven",
     "relationship": "proven", "layout": "proven",
-    "script": "caution", "value_list": "caution", "custom_function": "caution",
+    "script": "caution", "value_list": "caution",
+    # custom_function Add re-tiered manual 2026-07-22: a real patch carrying two
+    # CustomFunctions printed "Patch File Applied" and landed zero. See
+    # patchability-matrix.md and the saxml_diff.PATCHABILITY comment.
+    "custom_function": "manual",
     "external_data_source": "caution",
 }
+# field is "proven" EXCEPT Container datatype — Add silently no-ops (2026-07-22,
+# datatype-level: a corrected Storage block no-oped identically). Per-item
+# override in saxml_diff, exercised by test_container_field_add_is_manual.
 EXPECTED_REMOVED = {
     "base_table": "caution", "field": "caution", "table_occurrence": "caution",
     "script": "caution", "layout": "caution", "value_list": "caution",
@@ -96,6 +103,27 @@ def test_added_tier_per_kind(ooe_dir, tmp_path):
         assert not added[kind]["duplicate_name"], f"{kind} sample collided on name"
         assert added[kind]["patchability"] == EXPECTED_ADDED[kind], \
             f"add {kind}: expected {EXPECTED_ADDED[kind]}, got {added[kind]['patchability']}"
+
+
+def test_container_field_add_is_manual(ooe_dir, tmp_path):
+    """A Container-datatype field ADD is forced manual; other datatypes keep proven.
+
+    The OOE FM22 fixture carries no container field, so one is synthesized by
+    cloning a real field and flipping its datatype — the override under test
+    keys on exactly that attribute."""
+    fields = json.loads((ooe_dir / "fields.json").read_text())
+    plain = next(f for f in fields if f.get("datatype") == "Text")
+    container = dict(plain, name=plain["name"] + "_container", id="99999",
+                     datatype="Container", _hash="synthetic")
+    dev = _copy_parsed(ooe_dir, tmp_path / "dev")
+    (dev / "fields.json").write_text(json.dumps(fields + [container]))
+    prod = _copy_parsed(ooe_dir, tmp_path / "prod")
+    kept = [f for f in fields if D.obj_key("field", f) != D.obj_key("field", plain)]
+    (prod / "fields.json").write_text(json.dumps(kept))
+    out = D.diff_snapshots(dev, prod, {})
+    added = {i["key"]: i for i in out["items"] if i["change"] == "added"}
+    assert added[D.obj_key("field", container)]["patchability"] == "manual"
+    assert added[D.obj_key("field", plain)]["patchability"] == "proven"
 
 
 def test_removed_tier_per_kind(ooe_dir, tmp_path):

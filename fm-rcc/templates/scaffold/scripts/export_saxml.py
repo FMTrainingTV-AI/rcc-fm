@@ -120,15 +120,19 @@ def main():
     result = json.loads(script_result.get("resultParameter") or "{}")
     print(f"  script result: {result}")
 
-    if result.get("stage") != "done" or result.get("error") != 0:
+    if result.get("ok") is False or result.get("stage") != "done" or result.get("error") != 0:
         print("✗ export script reported failure — stopping before transport")
         sys.exit(1)
 
-    rec_id = result["recordId"]
-    print(f"→ pulling {cfg['text_field']} from {cfg['drop_table']}({rec_id})")
+    # The SAXML drop table's validated-unique PrimaryKey is its OData entity
+    # key — the script returns it as primaryKey. recordId is the fallback for
+    # installs whose drop table has no validated PK.
+    pk = result.get("primaryKey")
+    key = f"'{pk}'" if pk else str(result["recordId"])
+    print(f"→ pulling {cfg['text_field']} from {cfg['drop_table']}({key})")
     t1 = time.time()
     status, raw = _req(cfg, "GET",
-                       f"/{cfg['drop_table']}({rec_id})?$select={cfg['text_field']}")
+                       f"/{cfg['drop_table']}({key})?$select={cfg['text_field']}")
     text = json.loads(raw).get(cfg["text_field"]) or ""
     blob = text.encode("utf-8")
     print(f"  HTTP {status} in {time.time() - t1:.1f}s")

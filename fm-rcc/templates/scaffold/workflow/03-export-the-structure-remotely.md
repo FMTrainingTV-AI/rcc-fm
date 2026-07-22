@@ -18,10 +18,13 @@ exports. What happens:
 1. **Trigger** — `POST .../Script.Agent_SaXML_Export` with the catalog list
    as the script parameter. The script runs server-side and returns its
    result JSON, typically in seconds.
-2. **Pickup** — `GET .../<dropTable>(<recordId>)?$select=<textField>`
-   downloads the XML as ordinary JSON. (Table and field names come from the
-   `dropTable` / `textField` lines in [`../hostedFile.md`](../hostedFile.md)
-   — recorded there during setup, never hardcoded in the driver.)
+2. **Pickup** — `GET .../<dropTable>('<primaryKey>')?$select=<textField>`
+   downloads the XML as ordinary JSON. The script's result JSON carries the
+   row's `primaryKey` — the SAXML table's OData entity key (recordId is the
+   driver's fallback for custom installs without a validated PK). Table and
+   field names come from the `dropTable` / `textField` lines in
+   [`../hostedFile.md`](../hostedFile.md) — recorded there during setup,
+   never hardcoded in the driver.
 3. **Land** — saved under `../schema/ddrs/YYYY-MM-DD/saxml_run-<stamp>.xml`.
    Date-stamped folders follow one rule: one folder per export day, so
    consecutive exports line up for diffing.

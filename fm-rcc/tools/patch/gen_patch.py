@@ -79,12 +79,30 @@ from saxml_diff import obj_key
 
 
 class DependencyError(Exception):
-    def __init__(self, problems: list[str], missing_keys=None):
+    def __init__(self, problems: list[str], missing_keys=None, missing_refs=None):
         super().__init__("unresolved references:\n  " + "\n  ".join(problems))
         self.problems = problems
         # diff keys of referenced-but-unselected objects that are themselves
         # available as 'added' diff items — i.e. the deps you'd also need to tick.
         self.missing_keys = set(missing_keys or ())
+        # Structured form of the same failures, one entry per unresolved
+        # reference: {key, kind, name, label}. `key` is the diff key when the
+        # reference resolves to a known dev object, else None — a None key is
+        # the signal that no amount of co-selection fixes it. Callers must use
+        # this rather than pattern-matching `problems` strings, which do not
+        # contain diff keys verbatim.
+        self.missing_refs = list(missing_refs or ())
+
+
+def _note_missing(st, key, kind, name, label) -> None:
+    """Record one unresolved reference in structured form.
+
+    key is the diff key of the object that would satisfy it, or None when
+    nothing in the diff can — the caller uses that distinction to tell an
+    auto-includable dependency from a hard blocker."""
+    if "missing_refs" in st:
+        st["missing_refs"].append(
+            {"key": key, "kind": kind, "name": name, "label": label})
 
 
 def fresh_uuid() -> str:
@@ -401,6 +419,7 @@ class PatchBuilder:
             "added": {k: {} for k in SUPPORTED_KINDS},
             "used_uuids": set(),
             "missing_keys": set(),
+            "missing_refs": [],
         }
         problems: list[str] = []
 
@@ -424,8 +443,11 @@ class PatchBuilder:
                     else:
                         problems.append(
                             f"{key}: table '{tn}' is neither selected for add nor present in prod")
-                        if f"base_table:{tn}" in self.dev["base_table"]:
+                        known = f"base_table:{tn}" in self.dev["base_table"]
+                        if known:
                             st["missing_keys"].add(f"base_table:{tn}")
+                        _note_missing(st, f"base_table:{tn}" if known else None,
+                                      "base_table", tn, key)
                         continue
                 else:
                     counters[kind] += 1
@@ -478,7 +500,7 @@ class PatchBuilder:
 
         # 6. dependency closure: report everything at once
         if problems:
-            raise DependencyError(problems, st["missing_keys"])
+            raise DependencyError(problems, st["missing_keys"], st["missing_refs"])
 
         # 7. wrap. Action order: AddAction, ReplaceAction(s), DeleteAction(s),
         # ModifyAction calc re-apply last (order validated end-to-end against
@@ -924,6 +946,8 @@ class PatchBuilder:
                 problems.append(
                     f"{label}: layout theme '{name or '?'}' (UUID {u or 'n/a'}) "
                     "not present in prod — adapt a donor theme first")
+                # themes are manual-tier: no diff key can ever satisfy this
+                _note_missing(st, None, "theme", name or "?", label)
                 continue
             u = el.get("UUID")
             if u:
@@ -940,6 +964,7 @@ class PatchBuilder:
                     mk = self.dev_uuid_to_key.get(u)
                     if mk is not None and "missing_keys" in st:
                         st["missing_keys"].add(mk)
+                    _note_missing(st, mk, kind, el.get("name", "?"), label)
                     problems.append(
                         f"{label}: references {kind} '{el.get('name', '?')}' "
                         f"(UUID {u}) — not in prod and not selected")
@@ -954,6 +979,7 @@ class PatchBuilder:
                     problems.append(
                         f"{label}: references custom menu set '{nm}' — custom "
                         "menus aren't patchable in v1; recreate it in prod first")
+                    _note_missing(st, None, "custom_menu_set", nm, label)
             elif tag.endswith("Reference") and tag not in (
                     "BaseTableSourceReference",) and el.get("name") is not None:
                 # Unknown reference shape outside REF_KINDS with no UUID —
@@ -973,6 +999,7 @@ class PatchBuilder:
                 problems.append(
                     f"{label}: field reference '{name}' has no UUID and its table "
                     f"occurrence '{to_name or '?'}' cannot be resolved")
+                _note_missing(st, None, "table_occurrence", to_name or "?", label)
                 return
             key = obj_key("field", {"table_name": tn, "name": name})
         else:
@@ -992,40 +1019,163 @@ class PatchBuilder:
             return
         if "missing_keys" in st:
             st["missing_keys"].add(key)
+        _note_missing(st, key if self.dev[kind].get(key) else None,
+                      kind, name, label)
         problems.append(
             f"{label}: unresolved reference to {kind} '{name}' "
             "(no UUID; not shared with prod, not selected)")
 
 
-def dependency_graph(dev_root, prod_root, diff: dict) -> dict[str, list[str]]:
-    """Adjacency map: each selectable 'added' diff item -> the other added items
-    it directly depends on (references that aren't already in prod).
+def _unselectable_reason(item: dict) -> str | None:
+    """Why this diff item can never be auto-included, or None if it can be."""
+    if item.get("ignored"):
+        return ("on the ignore list — excluded from the diff; re-run saxml_diff "
+                "with a narrower --ignore if it belongs in the patch")
+    if item.get("duplicate_name"):
+        return ("duplicate name — only the last same-named object survives diff "
+                "keying; resolve the duplicate in FileMaker first")
+    if item.get("patchability") == "manual":
+        return ("manual tier — FMUpgradeTool cannot patch this kind; create it "
+                "in FileMaker (or paste it via the fm-xml skill) first")
+    if item.get("kind") not in SUPPORTED_KINDS:
+        return f"kind '{item.get('kind')}' has no AddAction support"
+    return None
 
-    Reuses the builder's real reference resolution: building an item alone surfaces
-    exactly the objects that would have to be co-selected (DependencyError carries
-    their diff keys). Callers expand transitively (a dep may have its own deps).
-    Manual / ignored / duplicate items and unsupported kinds are excluded — they
-    can't be auto-included anyway. Edges only point at other selectable added items.
+
+def dependency_analysis(dev_root, prod_root, diff: dict,
+                        direction: str = "push") -> dict:
+    """Dependency edges plus the blockers that must never be silently dropped.
+
+    Returns {"deps": {key: [selectable dep keys]},
+             "blockers": {key: [{kind, name, reason}]}}.
+
+    Reuses the builder's real reference resolution: building an item alone
+    surfaces exactly the objects that would have to be co-selected
+    (DependencyError carries their diff keys). Callers expand `deps`
+    transitively — a dep may have its own deps.
+
+    The split matters. A required object that is ignored, manual-tier,
+    duplicate-named, or of an unsupported kind CANNOT be auto-included, and the
+    old graph simply dropped it: the operator got a selection that looked
+    closed and a patch that landed incomplete. Those now land in `blockers`,
+    and the review UI must refuse to select anything that has one.
+
+    direction:
+      "push" — dev is the source, prod keeps its own history. Only added and
+               modified items are probed; removed items are not selectable and
+               get no edges.
+      "sync" — removed items are selectable too. Delete edges run in REVERSE
+               (deleting an object requires deleting its dependents) and are
+               NOT computed here; see the caveat on `removed_unanalysed`.
     """
+    if direction not in ("push", "sync"):
+        raise ValueError(f"direction must be 'push' or 'sync', got {direction!r}")
+
     builder = PatchBuilder(dev_root, prod_root, diff)
-    added = [i for i in diff.get("items", [])
-             if i.get("change") == "added" and not i.get("ignored")
-             and not i.get("duplicate_name") and i.get("patchability") != "manual"
-             and i.get("kind") in SUPPORTED_KINDS]
-    added_keys = {i["key"] for i in added}
-    graph: dict[str, list[str]] = {}
-    for item in added:
+    items = diff.get("items", [])
+    by_key = {i["key"]: i for i in items}
+
+    probe_changes = ("added", "modified") if direction == "push" \
+        else ("added", "modified", "removed")
+    candidates = [i for i in items
+                  if i.get("change") in probe_changes
+                  and _unselectable_reason(i) is None]
+    selectable = {i["key"] for i in candidates}
+
+    deps: dict[str, list[str]] = {}
+    blockers: dict[str, list[dict]] = {}
+
+    for item in candidates:
         key = item["key"]
+        # modified/removed compile to Replace/DeleteAction, which build()
+        # refuses without allow_caution — the probe must pass it or every
+        # non-added item would fall out as ValueError with no edges at all
+        # (that bug is why modified items had an empty graph before).
+        caution = item.get("change") in ("modified", "removed")
         try:
-            builder.build([key])
+            builder.build([key], allow_caution=caution)
         except DependencyError as e:
-            graph[key] = sorted(k for k in e.missing_keys
-                                if k in added_keys and k != key)
-        except ValueError:
-            graph[key] = []          # selection-validation issue, not a dep edge
+            edges: set[str] = set()
+            blocked: dict[tuple, dict] = {}   # dedup — one row per distinct dep
+            for ref in e.missing_refs:
+                k = ref.get("key")
+                if k == key:
+                    continue
+                if k is not None and k in selectable:
+                    edges.add(k)
+                    continue
+                dep = by_key.get(k) if k else None
+                if k is None:
+                    reason = ("nothing in the diff supplies it — create it in "
+                              "prod manually before patching")
+                elif dep is not None:
+                    reason = _unselectable_reason(dep) or \
+                        "not selectable in this direction"
+                else:
+                    reason = "referenced object is not present in the diff"
+                blocked[(k, ref["kind"], ref["name"])] = {
+                    "key": k,
+                    "kind": ref["kind"],
+                    "name": ref["name"],
+                    "reason": reason,
+                }
+            deps[key] = sorted(edges)
+            if blocked:
+                blockers[key] = sorted(blocked.values(),
+                                       key=lambda b: (b["kind"], b["name"]))
+        except ValueError as exc:
+            # genuine selection-validation failure — not a dependency edge, but
+            # it does mean this item cannot be patched. Surface it, don't hide it.
+            deps[key] = []
+            blockers[key] = [{"key": None, "kind": "selection", "name": str(exc),
+                              "reason": "cannot be included in a patch"}]
         else:
-            graph[key] = []          # references resolve against prod alone
-    return graph
+            deps[key] = []           # references resolve against prod alone
+
+    # Transitive blocking. An item whose dependency closure contains a blocked
+    # object cannot be patched either: auto-include would stop at the gap and
+    # hand the generator a selection that is missing a prerequisite. Propagate
+    # so the UI never offers a tick that compiles to a broken patch. One pass
+    # suffices — the closure is already transitive.
+    def _closure(seed: str) -> set[str]:
+        out, stack = set(), [seed]
+        while stack:
+            for d in deps.get(stack.pop(), ()):
+                if d not in out:
+                    out.add(d)
+                    stack.append(d)
+        return out
+
+    direct = set(blockers)
+    for key in list(deps):
+        if key in direct:
+            continue
+        for dep in sorted(_closure(key)):
+            if dep in direct:
+                item = by_key.get(dep, {})
+                blockers.setdefault(key, []).append({
+                    "key": dep,
+                    "kind": item.get("kind", dep.split(":", 1)[0]),
+                    "name": item.get("name", dep.split(":", 1)[-1]),
+                    "reason": "depends on this object, which is itself blocked",
+                    "indirect": True,
+                })
+
+    result = {"deps": deps, "blockers": blockers}
+    if direction == "sync":
+        # Honest gap: delete edges point the opposite way (a base table can only
+        # go once everything referencing it goes too), which needs a reverse
+        # index over the PROD export rather than the builder's forward walk.
+        # Not computed — say so rather than imply the closure is complete.
+        result["removed_unanalysed"] = sorted(
+            i["key"] for i in candidates if i.get("change") == "removed")
+    return result
+
+
+def dependency_graph(dev_root, prod_root, diff: dict) -> dict[str, list[str]]:
+    """Back-compat wrapper — edges only. Prefer dependency_analysis(), which
+    also reports the blockers this shape has no way to express."""
+    return dependency_analysis(dev_root, prod_root, diff)["deps"]
 
 
 def generate(dev_export, prod_export, diff_path, selection_path, out_path,

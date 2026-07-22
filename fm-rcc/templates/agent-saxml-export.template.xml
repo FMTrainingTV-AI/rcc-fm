@@ -2,6 +2,11 @@
 <!--
   Agent_SaXML_Export v4 — TEMPLATE. Do not paste as-is.
 
+  LEGACY / CUSTOM-INSTALL PATH. The standard install is the v5 paste-in pair
+  (saxml-table.xml + agent-saxml-export-v5.xml beside this file) — no
+  placeholders, no interview. Use THIS template only when the standard SAXML
+  table can't land as-is (naming conventions, reuse of an existing log table).
+
   Substitute every {{PLACEHOLDER}} with the target file's real names, then paste
   the result into an empty script named Agent_SaXML_Export (steps-only paste).
   See docs/guides/remote-file-agent-workflow.md §3 for the setup interview that

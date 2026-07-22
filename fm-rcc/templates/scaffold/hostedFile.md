@@ -12,13 +12,13 @@ pass    - <fill in — read the credentials note first>
 
 OData base URL: `https://<server>/fmi/odata/v4/<file-without-.fmp12>`
 
-The export drop box chosen for THIS file during setup (see `workflow/02` —
-every file gets its own choices; the driver reads these instead of
-hardcoding them):
+The export drop box for THIS file (see `workflow/02` — the standard
+paste-in pair uses the values below as-is; a custom install records its own
+names. The driver reads these instead of hardcoding them):
 
-dropTable  - <chosen in the workflow/02 interview>
-dropLayout - <layout showing the drop table>
-textField  - <text field carrying the XML payload>
+dropTable  - SAXML
+dropLayout - SAXML
+textField  - ResponseText
 
 > **Note on credentials:** on a shared training sandbox it can be reasonable
 > to keep the account and password in this file for reproducibility. On a

@@ -1,6 +1,6 @@
 # Patchability Matrix — what FMUpgradeTool can and can't patch
 
-*Last updated: 2026-07-21*
+*Last updated: 2026-07-22*
 
 What works, what's sketchy, and what still has to be done by hand — the traffic-light map the pipeline actually enforces. Every tier here is grounded in real FMUpgradeTool runs (dated in the code) plus Claris's documented limits — not guesses.
 
@@ -21,13 +21,13 @@ Operations map to FMUpgradeTool actions: **Add** = AddAction, **Change** = Repla
 | Object type | Add | Change | Remove |
 |---|---|---|---|
 | Base tables | 🟢 proven | 🔴 manual | 🟡 caution |
-| Fields | 🟢 proven | 🟡 caution | 🟡 caution |
+| Fields | 🟢 proven⁶ | 🟡 caution | 🟡 caution |
 | Table occurrences | 🟢 proven | 🔴 manual | 🟡 caution |
 | Relationships | 🟢 proven | 🔴 manual | 🔴 manual |
 | Layouts | 🟢 proven | 🔴 manual¹ | 🟡 caution |
 | Scripts | 🟡 caution² | 🟡 caution² | 🟡 caution |
 | Value lists | 🟡 caution | 🔴 manual | 🟡 caution |
-| Custom functions | 🟡 caution | 🔴 manual³ | 🟡 caution |
+| Custom functions | 🔴 manual³ | 🔴 manual³ | 🟡 caution |
 | External data sources | 🟡 caution⁴ | 🔴 manual | 🔴 manual |
 | **Accounts** | 🔴 manual | 🔴 manual | 🔴 manual |
 | **Privilege sets** | 🔴 manual | 🔴 manual | 🔴 manual |
@@ -38,8 +38,9 @@ Operations map to FMUpgradeTool actions: **Add** = AddAction, **Change** = Repla
 
 ¹ Adds carry the layout intact (the win), but a *changed* layout re-diffs forever — FMUpgradeTool renumbers internal layout ids and flips an Options bit on insert; we hash layouts through a per-instance view to detect real changes, but replacing one in place is not yet proven.
 ² Added scripts carry their full step bodies (validated by round trip). A *changed* script whose steps differ is **rejected** — ReplaceAction swaps the catalog entry only (name/options), and the format forbids carrying step bodies in a Replace, so it would silently keep the old steps.
-³ Custom functions **cannot be Replace'd** — an official App Upgrade Tool limitation. Change = delete + re-add by hand.
+³ Custom functions are effectively **untouchable by patch**. Add: silently no-ops — proven 2026-07-22 (FMUpgradeTool 22.0.5.500, same-lineage patch, two `<CustomFunction>` elements, "Patch File Applied", zero landed; corroborates the 2026-07-16 cross-lineage run where all 61 CFs no-opped). Change: **cannot be Replace'd** — an official App Upgrade Tool limitation. Deliver custom functions via clipboard XML (fm-xml skill) instead.
 ⁴ External data sources add the *reference* only; the path/credentials are environment-specific and still need a human.
+⁶ **Container fields are the exception to the green tier**: a Container-datatype field Add silently no-ops (proven 2026-07-22 — validatePatch passed, smoke passed, banner printed, fields absent on re-export; only the verify caught it). It is the **datatype**, not the storage XML — a corrected `<Storage global="False" maxRepetitions="1"/>` no-oped identically. The differ forces container-field adds to `manual`; deliver them via clipboard XML.
 ⁵ Theme **Add is capability-proven for custom themes** (probe, 2026-07-16): theme definitions harvested verbatim from a full SaXML export, wrapped in the standard patch envelope, applied via AddAction through the normal validate → smoke → backup pipeline — both `com.filemaker.theme.custom.*` themes landed and survived the re-export oracle, consistency clean. A **built-in** theme name (`com.filemaker.theme.enlightened`) silently dropped — engine-reserved; most likely rule: custom themes patchable, built-ins never. The row stays red because `gen_patch.py` does not yet emit Theme AddActions (queued blend item: teach the generator + update `PATCHABILITY` + the matrix-lock tests). Related: the generator matches layout→theme dependencies by NAME, not UUID — so a base file pre-loaded with the source's themes unblocks that source's themed layouts.
 
 ## Why the yellow and red exist — the gotchas behind the tiers
@@ -51,7 +52,8 @@ Operations map to FMUpgradeTool actions: **Add** = AddAction, **Change** = Repla
 - **Security and UI catalogs are off-limits.** Accounts, privilege sets, extended privileges, custom menus, file access — DeleteAction explicitly can't touch the privilege/accounts catalog, and the rest are unproven and high-risk. These stay human, always. (Themes are the one crack in this wall: Add is capability-proven for custom themes — see footnote 5 — but generator support is still queued, so the tier holds.)
 - **Duplicates force manual.** Any object whose name collides (same name twice) is forced to `manual` — resolve the duplicate in FileMaker before patching.
 - **Mid-patch abort at scale.** On a ~2,000-object patch, FMUpgradeTool printed "applied" but abandoned ~1,600 objects mid-patch — catalog-ordered: early catalogs landed, everything after silently dropped (observed 2026-07-16; a distinct mode from the per-object silent no-op). Countermeasures: the re-export verify catches it; **retry-before-drop** (re-apply a patch of just the unresolved objects before treating any of them as unpatchable — a one-bad-apply run otherwise looks like mass per-object refusal); **wave-apply** per catalog (tables+fields → TOs → relationships → VLs+CFs → scripts → layouts), verifying between waves; diagnose with `FMUpgradeTool -v` (verbose — the pipeline doesn't use it by default) to find where it stops.
-- **Cross-lineage silent no-ops.** Applying objects exported from one file lineage onto a base from a different lineage hit a new no-op class: relationship and custom-function AddActions "applied" per the banner but never landed (all 76 relationships, all 61 CFs in the observed run), while tables/fields/TOs/scripts landed fine. Same-lineage runs have never hit this. Suspects: order-at-scale vs. cross-lineage identity; levers: second-pass apply after tables/fields/TOs verify, `-v` diagnosis, `--regenerateGUIDs` on the base.
+- **Cross-lineage silent no-ops.** Applying objects exported from one file lineage onto a base from a different lineage hit a new no-op class: relationship and custom-function AddActions "applied" per the banner but never landed (all 76 relationships, all 61 CFs in the observed run), while tables/fields/TOs/scripts landed fine. **Update 2026-07-22: the custom-function part is not lineage-specific** — a same-lineage 2-CF patch no-oped identically, so CF Add is manual-tier outright (footnote 3). Relationships remain a cross-lineage-only observation. Levers for the relationship class: second-pass apply after tables/fields/TOs verify, `-v` diagnosis, `--regenerateGUIDs` on the base.
+- **Silent no-ops are datatype-aware.** Container-field adds vanish exactly like custom functions (footnote 6) — the banner, validatePatch, and the smoke apply all pass. The lesson generalizes: *any* new object kind or datatype earns its green only from a re-export round trip, never from the apply pipeline's own success signals.
 
 ## Coverage vs. the universe — the "one of everything" file
 
