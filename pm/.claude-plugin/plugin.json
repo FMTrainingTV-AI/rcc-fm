@@ -1,0 +1,9 @@
+{
+  "name": "pm",
+  "version": "0.12.0",
+  "description": "Project-management layer for agentic development. /pm:pm-scaffold stands up a minimal starter (day-one files only \u2014 every other folder is created on first write per the stamped CLAUDE.md taxonomy); discovery riffs work into docs/intent/<slug>.md with a size call; whats-next and stepping-away open and close each working SESSION (not the day) as per-session, per-person append-only logs \u2014 YYYY-MM-DD-<name>[-N].md, several a day is normal; checkpoint re-aims only a session too long to close and reopen; verify-before-done gates completion claims on fresh evidence; the credential-guard hook deterministically blocks staging credential-shaped files. Utility skills: okf (knowledge-bundle format) and granola-transcript (verbatim meeting transcripts into gitignored _pm/transcripts/). SDLC.md is the portable doctrine layer \u2014 stages, gates, the artifact chain, no tools named.",
+  "author": {
+    "name": "Joe DaSilva and Richard Carlton",
+    "email": "digitaljoed@gmail.com"
+  }
+}

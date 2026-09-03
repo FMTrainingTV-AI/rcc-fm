@@ -9,6 +9,11 @@
       "name": "fm-rcc",
       "source": "./fm-rcc",
       "description": "Agentic FileMaker development: one-verb-per-skill (calc language, scripting, XML wire format, Save-as-XML/DDR analysis, patch pipeline, turnkey direct OData + Data API + Admin API connection tools, connection router, ProofKit, docs) plus BaseElements + MBS plugin reference; SaXML patching with verify/rollback; XML\u2192file conversion; project scaffolding with remote-export toolbelt."
+    },
+    {
+      "name": "pm",
+      "source": "./pm",
+      "description": "Project-management layer for agentic work: /pm:pm-scaffold stands up a starter, whats-next and stepping-away open and close each working session, checkpoint re-aims a long one, verify-before-done gates completion claims on fresh evidence, and a credential-guard hook blocks staging credential-shaped files."
     }
   ]
 }

@@ -1,0 +1,17 @@
+.DS_Store
+*.log
+node_modules/
+__pycache__/
+.claude/settings.local.json
+
+# Credentials — never committed (the pm plugin's credential-guard hook also
+# blocks staging these; the ignore is the belt to that brace).
+.env
+.env.*
+!.env.example
+account.md
+credentials.*
+secrets.*
+
+# Transcripts — client conversations stay out of the shared repo.
+_pm/transcripts/
