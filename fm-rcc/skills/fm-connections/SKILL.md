@@ -1,6 +1,6 @@
 ---
 name: fm-connections
-description: The FileMaker connection ROUTER — decide HOW to reach a FileMaker file (ProofKit MCP vs direct OData vs direct Data API vs Admin API vs offline schema pipeline) and the layout-as-security-boundary rules. Use when the choice of connection method is the question ("which way should I connect", "why did the MCP fail", "MCP vs Data API vs OData", how the FileMaker server APIs relate). For the actual work: schema changes → fm-odata; record CRUD → fm-dataapi; server ops / hosted-file download → fm-admin; offline schema analysis → fm-saxml; ProofKit/web viewers → fm-proofkit.
+description: The FileMaker connection ROUTER — decide HOW to reach a FileMaker file (ProofKit MCP vs direct OData vs direct Data API vs Admin API vs OttoFMS vs offline schema pipeline) and the layout-as-security-boundary rules. Use when the choice of connection method is the question ("which way should I connect", "why did the MCP fail", "MCP vs Data API vs OData", how the FileMaker server APIs relate). For the actual work: schema changes → fm-odata; record CRUD → fm-dataapi; server ops / hosted-file download → fm-admin; OttoFMS servers (logs, zero-downtime file copy, deployments) → fm-otto; offline schema analysis → fm-saxml; ProofKit/web viewers → fm-proofkit.
 allowed-tools: Bash, Read, Grep, Glob
 ---
 
@@ -20,9 +20,10 @@ FileMaker exposes several ways in. This skill picks the right one; the doing liv
 | **Direct OData** | You have credentials for a hosted file and need **schema changes** (create tables/fields) or bulk access | **`fm-odata`** |
 | **Direct Data API** | You have credentials and need **record** CRUD (query/create/update/delete) | **`fm-dataapi`** |
 | **Admin API** | You have **admin console** credentials and need **server** operations — hosted-file inventory, server status, or downloading a hosted .fmp12 (close → download → reopen) | **`fm-admin`** |
+| **OttoFMS** | The server runs **OttoFMS** and you need **server logs**, a hosted file copied **without downtime**, deployments, or file surgery | **`fm-otto`** |
 | **Schema pipeline** | **Offline** deep analysis — calcs, scripts, relationship graph, agent knowledge base | `fm-saxml` (`tools/ddr/ddr.py`) |
 
-The first four talk to the file's *data* or the *server* live; note the credential split — OData/Data API use a **file account**, the Admin API uses the **admin console** account. They are different credentials for different doors.
+The first five talk to the file's *data* or the *server* live; note the credential split — OData/Data API use a **file account**, the Admin API and OttoFMS both use the **admin console** account. Different credentials for different doors — but Otto and the Admin API share one identity, so a single `.env` profile drives both.
 
 They coexist — a real session weaves between them: read pre-wired schema via MCP, mutate via direct OData, verify via a refreshed MCP call, query records via the direct Data API. That's normal.
 
@@ -34,10 +35,25 @@ They coexist — a real session weaves between them: read pre-wired schema via M
 | Query / create / update / delete **records** | Direct Data API → **`fm-dataapi`** |
 | Create a table, add a field, change schema programmatically | Direct OData → **`fm-odata`** (Data API can't; MCP doesn't expose it) |
 | Live schema/SQL on an already-configured, app-open file | ProofKit MCP → `fm-proofkit` |
-| Get a hosted file LOCAL (to patch, clone, or archive it) — with console creds | Admin API → **`fm-admin`** (close → download → reopen) |
+| Get a hosted file LOCAL (to patch, clone, or archive it) — with console creds | **`fm-otto`** if the server runs Otto (no downtime); else Admin API → **`fm-admin`** (close → download → reopen) |
 | Server status, hosted-file list, who's connected | Admin API → **`fm-admin`** |
+| **Read the server's logs** — Event.log, script errors, "what happened yesterday" | **`fm-otto`** (the Admin API has no log-content endpoint at all) |
+| Deploy / undo a deployment, build, recover or encrypt a file | **`fm-otto`** |
 | Read the whole graph offline — calcs, scripts, value lists | Schema pipeline → `fm-saxml` |
 | Write scripts/layouts/fields as XML | `fm-xml` (generate) → fmlint (check) → `fm-patch` or clipboard paste |
+
+## OttoFMS has two faces — don't confuse them
+
+If a server runs OttoFMS, "use Otto" is ambiguous. There are two unrelated surfaces:
+
+| Face | Path | What it is | Skill |
+|---|---|---|---|
+| **Developer API** | `/otto/api/...` | Server operations — logs, deployments, builds, file surgery. Admin-console auth. | **`fm-otto`** |
+| **Data proxy** | `/otto/fmi/data/...` · `/otto/fmi/odata/...` | The *same* Data API and OData, fronted by Otto so an **Otto API key** (`Bearer`) replaces file-account auth and session management | **`fm-dataapi`** / **`fm-odata`**, just with the Otto base URL and key |
+
+The proxy face is a credential and URL swap on the doors you already know — it
+does not change what those APIs can do. `references/filemaker_integration_guide.md`
+covers its configuration.
 
 ## Layout is the security boundary
 

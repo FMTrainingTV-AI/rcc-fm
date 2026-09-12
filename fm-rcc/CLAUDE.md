@@ -25,6 +25,7 @@ resources/fmbase.fmp12       scaffold seed file (BASE + ProofKit) for E2E tests
 - **Skills reference tools via `${CLAUDE_PLUGIN_ROOT}`** — never relative paths; skills run from arbitrary project cwds.
 - **The operator selection gate is sacred** (see `skills/fm-patch/references/workflows/diff-review.md` step 5): no code or prompt in this plugin may synthesize `selection.json`.
 - **Clean-room rule:** nothing in this repo may be copied from Claris's beta toolkit plugin. Original code + public docs only.
+- **Agents pin a `model:`** matched to their work — mechanical/verify → `sonnet`, open-ended/brainstorming agents → `opus`.
 
 ## Local install for testing
 

@@ -1,6 +1,6 @@
 # fm-rcc — Agentic FileMaker Plugin
 
-A Claude Code plugin that turns a session into a competent FileMaker developer. It knows the calculation language, generates and validates paste-ready XML, audits a schema from a Save-as-XML or DDR export, and **patches `.fmp12` files with backup → validate → verify → rollback safety** — plus Data API / OData / ProofKit integration, first-party docs lookup, and the BaseElements + MBS plugins.
+A Claude Code plugin that turns a session into a competent FileMaker developer. It **reads a live hosted file's whole design over the wire** — Save-as-XML pulled through OData, with no FileMaker Pro open, no CLI tools, no server plugin, and the file never taken down — then knows the calculation language, generates and validates paste-ready XML, audits that schema, and **patches `.fmp12` files with backup → validate → verify → rollback safety**, plus Data API / OData / ProofKit integration, first-party docs lookup, and the BaseElements + MBS plugins.
 
 > Working on the plugin itself: [CLAUDE.md](CLAUDE.md).
 
@@ -35,6 +35,8 @@ Use **`/fm-rcc:fm-scaffold`** on its own only when you want structure *without* 
 
 Skills load automatically when the topic matches. They're organized by what you're doing:
 
+> **How Claude reaches a file — four ways in, one way out.** Tables and fields go *in* live over **OData**; whole layouts, relationships and table occurrences go in through the **patch** pipeline (local & closed); individual objects — scripts, functions, fields, layout objects — go in by **clipboard paste**, with you as the gate; **ProofKit** reads live data and ships a web-viewer UI. Design only ever comes *out* as **Save-as-XML** — which fm-rcc pulls from a *live hosted file over the wire*, the read that used to demand the file closed on your disk. That read is what feeds diff, patch, and build.
+
 ### ✍️ Author — produce FileMaker
 | Skill | Owns |
 |---|---|
@@ -45,13 +47,16 @@ Skills load automatically when the topic matches. They're organized by what you'
 ### 🔎 Analyze — understand what's there
 | Skill | Owns |
 |---|---|
-| **`fm-saxml`** | **Schema analysis** — parse a Save-as-XML (FM 2026 split-catalog) or classic DDR export into per-object files + an agent-readable knowledge base; trace refs/orphans, diff versions. Reads and analyzes; it never mutates. |
+| **`fm-saxml`** | **Schema analysis** — parse a Save-as-XML (FM 2026 split-catalog) or classic DDR export into per-object files + an agent-readable knowledge base; trace refs/orphans, diff versions. The export can be a local file *or one pulled from a live hosted file over the wire* (via the OData channel). Reads and analyzes; it never mutates. |
 | **`fm-docs`** | **Authoritative lookup** — ground claims in first-party Claris docs (step semantics, function signatures, exact option names). Local-first cache. |
 
-### 🚀 Deploy — change the file
+### 🚀 Deploy — land a change into a file
+
+> **Which door does the writing.** On a **hosted** file — the everyday case — tables and fields go in live over **`fm-odata`**, and scripts, custom functions, and individual layout objects go in as generated XML you **paste on screen** (MBS clipboard) into the open file. Nothing comes down. What the live doors *can't* carry — **whole layouts, relationships, table occurrences** — needs the patch pipeline, which runs only on a **local, closed** `.fmp12`. So patch is the door for structural moves, **dev → prod migration**, and building a file from a starter — the only door that moves a layout intact, not a fallback. (Accounts, privilege sets, custom menus, themes and file security stay a human's job in *every* lane.)
+
 | Skill | Owns |
 |---|---|
-| **`fm-patch`** | The **mutation pipeline** — export → diff dev/prod → generate an FMUpgradeTool patch → apply safely → verify by re-export → roll back. The only path that touches a `.fmp12`. |
+| **`fm-patch`** | The **mutation pipeline** — export → diff dev/prod → generate an FMUpgradeTool patch → apply safely → verify by re-export → roll back. Local, closed `.fmp12` only — the door for the whole-design changes the live lanes structurally can't make. |
 
 ### 🔌 Integrate — connect to a live file *(tool-skills: hand them creds, they run)*
 | Skill | Owns |
@@ -59,7 +64,8 @@ Skills load automatically when the topic matches. They're organized by what you'
 | **`fm-dataapi`** | **Records** over the Data API — query/create/update/delete/find/count on a hosted file, connecting *directly* with supplied credentials. Ships a ready-to-run zero-dep client. |
 | **`fm-odata`** | The **schema side-door** — connect over OData with credentials and create/alter tables & fields on a live file. SQL-DDL validation baked in (no more `8310`). Ships a ready-to-run client. |
 | **`fm-admin`** | The **server door** — Admin API v2 with console credentials: hosted-file inventory, server status, and **download a hosted `.fmp12`** (close → download → always reopen). Ships a ready-to-run driver. |
-| **`fm-connections`** | The **router** — which method when (MCP vs direct OData vs direct Data API vs Admin API vs offline), and the "arbitrary file → go direct, never the fixed MCP" rule. |
+| **`fm-otto`** | The **OttoFMS door** — the Developer API (`/otto/api`) on servers running Otto: **read server log content** (`Event.log`, script errors — the Admin API has no such endpoint) and **copy a hosted file or clone with zero downtime**, plus deployments, builds and file surgery. Ships a ready-to-run driver. |
+| **`fm-connections`** | The **router** — which method when (MCP vs direct OData vs direct Data API vs Admin API vs OttoFMS vs offline), and the "arbitrary file → go direct, never the fixed MCP" rule. |
 | **`fm-proofkit`** | The **ProofKit bridge** — MCP server (live schema, SQL, CRUD, ERD), React web-viewer apps inside FileMaker, and the ProofGeist TS toolchain for external web apps. |
 
 ### 🧩 Extend — third-party plugins *(unprefixed by design — they're separate products)*
@@ -99,7 +105,9 @@ Backed by a **136-test suite** (131 on the patch pipeline, including E2E against
 
 ## Safety model
 
-Changes to a `.fmp12` only land through the pipeline: timestamped backup → `--validatePatch` on a copy → smoke apply on a copy → in-place apply → **verify by re-export + re-diff** (the tool's own success banner is known to lie). Every action appends to `fm/changelog.md`; every patch keeps before/after states under `fm/patches/<ts>/` for rollback. What gets patched is always a **human-approved selection** from the HTML review artifact — the agent never picks for you.
+**Patch-lane changes** to a closed `.fmp12` land through the pipeline: timestamped backup → `--validatePatch` on a copy → smoke apply on a copy → in-place apply → **verify by re-export + re-diff** (the tool's own success banner is known to lie). Every action appends to `fm/changelog.md`; every patch keeps before/after states under `fm/patches/<ts>/` for rollback. What gets patched is always a **human-approved selection** from the HTML review artifact — the agent never picks for you.
+
+**Live-lane changes** to a hosted file have no such gate — an MBS paste can silently no-op, and OData applies immediately. So the safety moves *upstream*: validate every snippet with `fmlint` before it reaches the clipboard, and **verify by re-export** after — because the absence of an error means nothing.
 
 ## Per-client kits (overlay model)
 
@@ -107,7 +115,7 @@ fm-rcc is the generic core. Each engagement gets a thin overlay — schema bible
 
 ## Status
 
-Tools are vendored and tested, agents and commands are live, and the skill pack is organized as **one verb per skill**. v0.6.0 opened the **hosted-file lane**: the `fm-admin` server door (Admin API download), the `xml_to_fmp12` XML→file converter, and a scaffold that ships the remote-export toolbelt + numbered runbooks. Planned next: a deterministic `genobj` shape compiler, a fuller docs cache, and a `/fm-client-kit` generator.
+Tools are vendored and tested, agents and commands are live, and the skill pack is organized as **one verb per skill**. v0.6.0 opened the **hosted-file lane** — its headline is reading a *live hosted file's whole design over the wire* (Save-as-XML pulled through OData, file never down), plus the `fm-admin` server door (Admin API close/download), the `xml_to_fmp12` XML→file converter, and a scaffold that ships that remote-export toolbelt + numbered runbooks. Planned next: a deterministic `genobj` shape compiler, a fuller docs cache, and a `/fm-client-kit` generator.
 
 ---
 

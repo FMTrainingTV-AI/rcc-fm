@@ -1,6 +1,6 @@
 ---
 name: fm-admin
-description: Talk to a FileMaker SERVER over the Admin API v2 with admin-console credentials — list hosted files, server status/metadata, and DOWNLOAD a hosted .fmp12 (close → download → reopen, safely). The third door — OData/Data API talk to the data; this talks to the server. Use when the user has admin console credentials and wants a hosted file downloaded locally (e.g. to clone it or run the patch pipeline), or wants server status, hosted-file inventory, or client counts. Ships a ready-to-run driver — RUN IT, do not write your own. For file-level data/schema use fm-dataapi/fm-odata; for which-method-when see fm-connections.
+description: Talk to a FileMaker SERVER over the Admin API v2 with admin-console credentials — list hosted files, server status/metadata, and DOWNLOAD a hosted .fmp12 (close → download → reopen, safely). The third door — OData/Data API talk to the data; this talks to the server. Use when the user has admin console credentials and wants a hosted file downloaded locally (e.g. to clone it or run the patch pipeline), or wants server status, hosted-file inventory, or client counts. Ships a ready-to-run driver — RUN IT, do not write your own. For file-level data/schema use fm-dataapi/fm-odata; for which-method-when see fm-connections. If the server runs OttoFMS, fm-otto is usually the better door — it reads LOG CONTENT (which this API cannot) and downloads a hosted file without closing it.
 argument-hint: "[databases|metadata|status|scripterrorslog|download <file>] [--host --user --password | --env <path>] [--profile FMS2]"
 allowed-tools: Bash, Read, Write
 ---
@@ -48,24 +48,39 @@ you hold console credentials for. Local file → `FMDeveloperTool --clone`
 /databases/upload` exists for the return trip (or `FMDeveloperTool
 --uploadDatabases`).
 
+**Check for OttoFMS first.** If the server runs Otto, `fm-otto`'s `download`
+gets the same file — and a clone — **without closing it at all**: no outage, no
+kicked clients, no reopen to verify. Verified on FMS 26.0.2 + Otto 4.18.2. The
+close → download → reopen dance below is the right answer only when Otto is
+absent. One call tells you: `otto.py info` needs no credentials.
+
 Default download target: `./dev/downloads/` under the working directory
 (`--out` to override).
 
 ## Hard-won facts (verified against live servers)
 
 - **The server documents itself:** `https://<host>/fmi/admin/apidoc/` embeds
-  the full OpenAPI spec (111 paths on 22.0.5). When in doubt, read the
-  server's copy, not memory.
+  the full OpenAPI spec — 111 paths on 22.0.5, and **175 operations across 20
+  tags on 26.0.2** (verified 2026-09). It is a Redoc bundle with the spec
+  inlined, so there is no separate `openapi.json` to fetch: read the HTML, or
+  pull the operation list out of its `#tag/<Tag>/operation/<id>` anchors. When
+  in doubt, read the server's copy, not memory.
 - **The logs verdict:** `GET /server/scripterrorslog` returns **settings
   only**. Admin API v2 has **no endpoint that returns log file content** —
   the Admin Console's log viewer uses a private API. Server status / clients /
   usage / schedules come from this API; reading `Event.log` itself needs
-  `fmsadmin`/filesystem access on a box you control.
+  `fmsadmin`/filesystem access on a box you control — **or OttoFMS, if the
+  server has it.** `GET /otto/api/server-info/logs/{name}` returns the log as
+  plain text over HTTPS. If you need logs, check for Otto first: **`fm-otto`**.
 - **Beyond the driver** (one `call()` away — import `Admin` from the script):
   `GET /fmdapi/usage` (Data API stats), `GET /clients` (+ DELETE to
   disconnect, POST to message), `POST /remotebackup/backup` "Back up Now" /
   `list` / `restore` (a no-close-needed path to a file copy — unexercised),
-  schedules CRUD, `GET /modelserver/*` (FMS AI model server).
+  schedules CRUD. FMS 26 groups the rest under 20 tags; the ones that did not
+  exist at 22.0.5 are **Claris-AI-Model-Server** (9 ops — the old
+  `/modelserver/*`, now a first-class group: LLM models, settings, HF token),
+  **Standby-Server** (14), **Notifications** (3) and **FMPlugins** (11).
+  `Database-Server` alone carries 46.
 
 ## Workflow
 
