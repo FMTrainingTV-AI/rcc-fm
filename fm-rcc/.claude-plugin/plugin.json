@@ -1,6 +1,6 @@
 {
   "name": "fm-rcc",
-  "version": "0.8.1",
+  "version": "0.8.3",
   "description": "Agentic FileMaker development: one-verb-per-skill (calc language, scripting, XML wire format, Save-as-XML/DDR analysis, patch pipeline, turnkey direct OData + Data API + Admin API + OttoFMS connection tools (fm-otto: server log content, zero-downtime hosted-file copy, deployments), connection router, ProofKit, docs) plus BaseElements + MBS plugin reference; SaXML patching with verify/rollback; XML\u2192file conversion; project scaffolding with remote-export toolbelt.",
   "author": {
     "name": "Joe DaSilva and Richard Carlton",

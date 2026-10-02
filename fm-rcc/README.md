@@ -53,6 +53,8 @@ Skills load automatically when the topic matches. They're organized by what you'
 ### 🚀 Deploy — land a change into a file
 
 > **Which door does the writing.** On a **hosted** file — the everyday case — tables and fields go in live over **`fm-odata`**, and scripts, custom functions, and individual layout objects go in as generated XML you **paste on screen** (MBS clipboard) into the open file. Nothing comes down. What the live doors *can't* carry — **whole layouts, relationships, table occurrences** — needs the patch pipeline, which runs only on a **local, closed** `.fmp12`. So patch is the door for structural moves, **dev → prod migration**, and building a file from a starter — the only door that moves a layout intact, not a fallback. (Accounts, privilege sets, custom menus, themes and file security stay a human's job in *every* lane.)
+>
+> **For a rebuild or port, the existing file is the spec.** Derive each checkpoint's test cases from its DDR, XML and observed behaviour, and write a prose spec only for what is changing. The reference wins when a running reference exists (migration, port, refactor, "match this prototype"); the spec wins when the work is new and the spec is the only reference.
 
 | Skill | Owns |
 |---|---|

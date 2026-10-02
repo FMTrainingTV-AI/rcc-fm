@@ -18,16 +18,16 @@ Single entry point for all FileMaker operations. Uses OData for queries
 large IDs correctly). Reads credentials from .env with profile support.
 
 Usage:
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py test
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py tables
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py schema <table>
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py query <table> [--filter "..."] [--select "..."] [--limit N]
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py get <table> <record_id>
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py create <table> --data '{"field": "value"}'
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py update <table> <record_id> --data '{"field": "value"}'
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py delete <table> <record_id>
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py find <table> <field> <value> [--op contains]
-    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-connections/scripts/fm.py count <table> [--filter "..."]
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py test
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py tables
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py schema <table>
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py query <table> [--filter "..."] [--select "..."] [--limit N]
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py get <table> <record_id>
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py create <table> --data '{"field": "value"}'
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py update <table> <record_id> --data '{"field": "value"}'
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py delete <table> <record_id>
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py find <table> <field> <value> [--op contains]
+    python3 ${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py count <table> [--filter "..."]
 
 Credentials (first match wins):
     1. CLI overrides:  --server HOST --database DB --username USER --password PASS
