@@ -50,6 +50,8 @@ check "quoted -C path with spaces"              block "git -C \"$tmp/sub repo\" 
 check "add -A sweeps untracked .env"            block "git add -A"
 check "add . sweeps untracked .env"             block "git add ."
 check "commit -am picks up modified credential" block "git commit -am wip"
+check "git mv then add in one command"          block "git mv README.md docs-readme.md && git add .env"
+check "real git pipeline still blocked"         block "cd cleandir | cat; git add .env"
 check "multi-line command"                      block "echo hi
 git add .env"
 
@@ -64,6 +66,9 @@ check "clean directory operand"                 allow "git add cleandir"
 check "commit with nothing secret staged"       allow "git commit -m x"
 check "non-git command"                         allow "echo hello"
 check "git without add/commit"                  allow "git status && git log --oneline"
+check "git mv is index-only, allowed"           allow "git mv README.md docs-readme.md"
+check "read-only subcommand added in 0.22.3"    allow "git show-ref"
+check ".git in a non-git pipeline"              allow "grep -rn readme --exclude-dir=.git . | head"
 
 cd /
 notrepo=$(mktemp -d) && cd "$notrepo"

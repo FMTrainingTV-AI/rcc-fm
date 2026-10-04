@@ -1,101 +1,96 @@
-# The agentic SDLC — the spec
+# The agentic SDLC — the principles
 
-**This is the doctrine layer — the *why*, with no tools named.** It is written to be portable: bind it to whatever stack without stopping to explain itself.
+These principles name no tools; bind them to your own stack. The purpose is finished work
+with evidence and little supervision. The process earns its place by reducing
+mistakes, repeated explanations and recovery effort.
 
-It is not a public standard and nothing is obliged to conform to it. It's the part of the thinking that stays true when the tools change — which is also, conveniently, the part the RCC course can render for an audience that has none of those tools.
+## The useful core
 
----
+- **Meaningful outcomes.** A ticket names a useful result and how to verify it.
+  Implementation steps and worker assignments stay within that ticket. Small
+  direct requests need no manufactured ticket hierarchy.
+- **One accountable orchestrator.** It owns shared setup, work allocation,
+  integration, the record and the user's conversation. Independent workers do
+  bounded work; they return evidence and blockers to the orchestrator.
+- **A work graph.** Prepare shared dependencies, run independent branches in
+  parallel where resources permit, and release downstream work only when its
+  inputs are ready. More agents are useful only if they improve net throughput.
+- **Proportionate verification.** Run checks that could expose the actual
+  failure, including required project checks. Verify the integrated outcome;
+  isolated worker success is not enough. Scope claims to what was observed.
+- **Concise continuity.** Keep decisions, evidence and next work recoverable
+  from the project record. Full worker transcripts do not belong in the
+  orchestrator's context or the next session's handoff.
 
-## The premise
+Two failures remain worth guarding against: ceremony with no evidence, and real
+verification lost in an unreadable conversation. The answer is a usable record,
+not a document for every action.
 
-An agent can write more code than a human can read. So review by reading every line stops scaling, and the old proxy for trust — *"I know who wrote this and I know their work"* — stops being available at all.
+## Stages are tools, not a compulsory route
 
-Trust moves **from the author to the record.** What makes a change trustworthy is no longer whose hand you recognize in it; it's that a chain of artifacts shows who asked for what, what was produced, what was checked, and who approved it. Everything below exists to make that chain exist and to keep it honest.
+| Need | Useful artifact |
+|---|---|
+| Clarify the outcome | Intent |
+| Resolve interdependent unknowns | Decision map |
+| State an interface or behavior precisely | Spec |
+| Track a useful outcome independently | Ticket |
+| Implement it | Code or other deliverable |
+| Establish what works | Executed checks and evidence |
+| Confirm delivery | Acceptance record for the delivered artifact |
+| Prevent a repeated mistake | A concise durable lesson |
 
-Two failure modes this guards against, in both directions:
+Use the artifacts the work needs; reuse existing ones. A well-specified ticket
+can go straight to execution. A job spanning several sessions does not itself
+need a decision map. Additional planning, review rounds or parallel workers
+must address a concrete uncertainty or an explicit project requirement.
 
-- **Ceremony without evidence** — stages performed, files written, nothing actually run. The record exists and is worthless.
-- **Evidence without record** — the work was genuinely checked, but only in a session transcript that nobody will ever read again. The trust dies with the context window.
+## Human decisions and authorization
 
-## The stages
+The human owns intent, scope and permissions. Existing authorization persists
+through skills, workers and sessions. Routine authorized work does not need a
+new approval because it reached another stage. Ask only for an answer that
+changes the work or an action that lacks authorization. Keep genuine questions
+in one place and continue independent work while they wait.
 
-A stage is defined by **which artifact exists** — never by a status someone updates. If the artifact isn't there, the stage hasn't happened, whatever anyone says.
+Explicit scoped agreements can make grants and budgets machine-readable. They
+record actual permission, never create it. Unknown, ambiguous or malformed
+agreements grant nothing; host boundaries and the user's instructions outrank
+them. Releases, production changes and client communication retain their own
+authorization requirements. A local bookkeeping entry is not a release.
 
-| Stage | The artifact that marks it | Human's role |
-|---|---|---|
-| **Discover** | A committed intent: the problem, the outcome, who's affected, what's fixed, what's still open, how we'd know it worked | Owns it — the intent is the human's statement of what they want |
-| **Chart** | A map of the unknowns, worked down to nothing | Answers the questions only they can answer |
-| **Spec** | A specification the intent's outcome can be checked against | Accepts or corrects |
-| **Ticket** | Work items with their blocking order | Accepts or corrects |
-| **Build** | Diffs and tests | **Gate: approves the plan before code exists** |
-| **Verify** | Fresh check output, read; review findings, triaged | **Gate: reads the findings and decides the tail** |
-| **Ship** | Evidence the deployed thing works, recorded | **Gate: approves, and applies to production personally** |
-| **Learn** | An incident or lesson written as a new intent | Owns it — closing the loop is a judgment call |
+## Who adjudicates
 
-Small work collapses Chart → Ticket and runs Discover → Build → Verify → Ship. Trivial edits skip the whole thing; ceremony on a one-liner is how a process earns contempt.
+Workers provide artifacts and evidence, not an unquestionable "done" verdict.
+The orchestrator checks their work against the outcome and tests the integrated
+result. A separate reviewer is useful when an unresolved risk needs another
+perspective; it is not a required extra conversation after every successful task.
+Once a review is chosen, findings receive explicit dispositions. Another round
+needs a new reason: changed work, a remaining finding or a required check.
 
-**Learn feeds Discover.** The loop closes or it isn't a lifecycle — a production incident that doesn't re-enter as an intent is a lesson that will be re-learned.
-
-## The artifact chain
-
-Each stage commits a versioned, human-readable file that the next stage consumes. Human-readable and committed are both load-bearing: a chain in a database nobody opens is not a record, and a chain that isn't in version control can't be shown to have existed at the time.
-
-The chain has to **terminate**. A chain that stops at "diffs" proves something was written, never that it worked. Ship's artifact is what makes the whole chain mean anything, and it is the one most often skipped.
-
-## The gates
-
-A gate is a point where the agent stops and a human decides. Three are non-negotiable:
-
-1. **Before code exists.** The human corrects the plan. This is the cheapest correction available anywhere in the lifecycle, and the only one that costs nothing to act on.
-2. **After the work goes green.** The agent demonstrates working output; the human reads the findings and decides what applies. Automated review ranks and filters — it does not approve.
-3. **Before production.** The human approves, and **the human applies.** The agent never touches production. This one is a boundary, not a preference: it's what keeps an unreviewed action from becoming an irreversible one.
-
-Gates run at stage **boundaries**, never inside a stage. A gate on half-formed work produces noise, and noise trains people to skip gates.
-
-**What a gate must produce:** a written disposition for every finding — applied, held, refuted, or out of scope — with the reason. A finding that vanishes without a disposition is the single most common way a record becomes a lie.
-
-## What must be proven, and when
-
-The stage that gets skipped is Verify→Ship, so the spec is explicit about it.
-
-- **The acceptance checks are written at Discover**, in the intent, in the human's own terms: *how would we know this worked?* Not tests — the outcome, stated so it can be checked.
-- **They are run more than once**: against the local or staging article, and again against production after deploy. Same checks, both times. A check that only ever ran locally proves the code compiles somewhere.
-- **The output is pasted into the record**, not summarized. Exit codes lie by omission and a summary is where a partial pass becomes a full one.
-- **Where nothing runnable can prove it**, the record says so plainly — what would have verified it, and that it wasn't run. Unverifiable-but-labeled keeps trust; unverifiable-but-confident spends it.
+Delivery acceptance remains distinct from ticket completion. When an accepted
+intent declares independent evidence channels, prove each at the candidate or
+delivered revision as required. A screenshot cannot establish persistence; a
+unit test cannot establish that the live user flow worked. Missing checks remain
+visible, and an exception is never described as an unqualified pass.
 
 ## The three steering layers
 
-Guidance and enforcement are different mechanisms and get confused constantly:
+User intent and project constraints set the outcome and authority. Skills guide
+repeatable work. Deterministic tools enforce checkable properties such as
+identity, allowed transitions and evidence completeness. Use the smallest layer
+that reliably handles the problem; none can manufacture consent or observed
+success. A checklist performed is not proof of a product working.
 
-| Layer | Nature | Use for |
-|---|---|---|
-| Instructions and skills | **Advisory** — the agent may reason past it | Judgment, method, house style, when to do what |
-| Hooks | **Deterministic** — the agent cannot reason past it | Non-negotiables. Credentials, protected paths, irreversible commands |
-| Permissions | **Boundary** — what the agent can reach at all | Calibrating blast radius per project |
+## Sessions
 
-The rule: **anything that must never happen is a hook, not a sentence.** If it's written as advice, it will eventually be reasoned past — not from malice, from a plausible-looking exception.
-
-## Shared record vs personal log
-
-Two kinds of writing, and collapsing them corrupts both:
-
-- **Shared record** — intent, decisions, specs, shipped evidence. Authoritative. Collaborators and clients read it. If it disagrees with reality, that's a bug to fix.
-- **Personal log** — what I did, what I'm picking up, where I left off. Per-person, append-only, **never authoritative.** If it disagrees with the shared record, the shared record wins, silently and always.
-
-A personal log that starts being treated as state is how two people end up confidently working from different truths.
-
-## What a binding must supply
-
-A binding is complete when it answers all of these. An unanswered row is a real gap, not a matter of style:
-
-1. Which tool or ritual owns each stage, and what its artifact literally is (path and format).
-2. Where the intent, the decisions, and the shipped evidence live.
-3. Who or what performs the review at each gate, and how findings get their disposition.
-4. What "run the acceptance checks" concretely means for this stack — locally and in production.
-5. How production is applied, by whom.
-6. Which non-negotiables are hooks rather than advice.
-7. Where the personal log lives and how it's kept non-authoritative.
+Manual close, fresh session and a short next-work handoff are the default.
+Session count and agent activity are not success metrics; completed outcomes
+and user effort are.
 
 ## Provenance
 
-Derived from Anthropic's *AI-Native SDLC Playbook*, reviewed against a working consulting stack 2026-08-23, and split out as a portable layer 2026-09-03 (`sdlc/RIFF.md`). The RCC course's bonus-SDLC page is an independent rendering of the same six-stage shape for an audience without this stack.
+The original doctrine was derived from Anthropic's AI-Native SDLC Playbook and
+a working consulting stack (2026-08-23 / 2026-09-03). The operating direction
+was revised on 2026-09-14 after multi-session pilots: preserve outcomes,
+subagents, evidence and handoffs; remove compulsory ceremony and tiny-task
+tickets; make extra process conditional. Earlier versions remain in Git.

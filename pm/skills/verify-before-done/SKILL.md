@@ -9,6 +9,13 @@ A false "done" costs more than a slow one: the user builds on work that isn't th
 
 ## The rule
 
+Verification is proportionate to the change: choose checks that could expose the
+actual failure and satisfy project requirements. Reuse current evidence when
+the verified artifact has not changed; don't repeat broad suites or add review
+rounds without a new risk, change or requirement. A worker's isolated checks do
+not replace verification after integration. Keep detailed output in the evidence
+record and bring concise results and links into the orchestrator's context.
+
 Before any completion claim, in order:
 
 1. **Name the verification.** What command or check would prove this claim to a skeptic? Tests, build, lint, running the thing, loading the page, calling the endpoint — the check that would catch the failure you'd most plausibly have caused.
@@ -34,6 +41,12 @@ Before any completion claim, in order:
 ## The CLAUDE.md block
 
 This skill only fires in sessions with the plugin installed. So the rule also ships as a short `## Verifying your work` block — [claude-md-block.md](./claude-md-block.md) — that `pm-scaffold` stamps into a new project's `CLAUDE.md`, and that any existing project can paste in. The block is the floor (it holds without the plugin); this skill is the trigger (it fires on the *claim*, which a CLAUDE.md line can't).
+
+## The ceiling of this skill
+
+This is a **self-report discipline, and self-report is a floor.** It makes the working agent's claims markedly better; it does not make them adjudicative. The reason is structural, not moral: "done" judged from inside the context that produced the work reads intention as if it were the artifact. That misreading is sincere, and running the check yourself doesn't remove it — you still chose which check to run, and you chose it knowing what you meant to build.
+
+So: use this for every completion claim, and don't mistake a passed one for a verdict. **A verdict comes from a party that wasn't there**, executing acceptance criteria written before the work started. See `SDLC.md` § Who adjudicates. This skill's job is to stop the cheap failures — stale evidence, unread output, rounded-up partials — so the adjudicator's time is spent on real questions.
 
 ## Where it lands in the pm flow
 

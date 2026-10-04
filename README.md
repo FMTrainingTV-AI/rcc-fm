@@ -8,10 +8,11 @@ validated XML, Save-as-XML/DDR schema analysis, and safe `.fmp12` patching
 and offline Claris docs lookup.
 
 **pm** — the project-management layer used in the workshop: `/pm:pm-scaffold`
-stands a project up, `whats-next` and `stepping-away` open and close a working
-session, `checkpoint` re-aims a long one, `verify-before-done` gates completion
-claims on fresh evidence, and a credential-guard hook blocks staging
-credential-shaped files.
+stands a project up with a `docs/TASKS.md` task list, `whats-next` and
+`stepping-away` open and close a working session and keep that list current,
+`checkpoint` re-aims a long one, `sibling-sessions` runs independent items side
+by side, `verify-before-done` gates completion claims on fresh evidence, and a
+credential-guard hook blocks staging credential-shaped files.
 
 ## Install
 

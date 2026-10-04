@@ -36,7 +36,7 @@ you just have to look it up by search instead of by link.
 
 3. **Fetch with the real id:** `get_meeting_transcript(meeting_id)` using the
    `id` from the `list_meetings` result. Speaker labels: `Me` = the note-taker
-   (Joe), `Them` = other participants.
+   (you), `Them` = other participants.
 
 4. If several meetings could match, show the candidates (title + date) and ask,
    or fetch the best match and say which one you picked.

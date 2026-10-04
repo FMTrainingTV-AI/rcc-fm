@@ -83,13 +83,17 @@ a *committed* file, so the project must be a repository.
 - **`docs/intent/` and `docs/adr/`** ship in the template for new-folder
   modes. In-place mode: create them (with their one-line READMEs copied from
   `${CLAUDE_PLUGIN_ROOT}/template/docs/`) if absent.
-- **The tracker.** Matt Pocock's `/setup-matt-pocock-skills` writes
-  `docs/agents/issue-tracker.md`; `/wayfinder`, `/to-spec`, `/to-tickets`
-  read it. It is user-invoked — you can't run it. If the file is missing,
-  tell the user that without it wayfinder falls back to local markdown under
-  `.scratch/`, and that the fix is one command: `/setup-matt-pocock-skills`
-  (GitHub Issues for team repos; local markdown is fine for solo/plugin
-  repos). Don't improvise the file yourself.
+- **The task list — `docs/TASKS.md` by default.** The template ships it with
+  empty Current / Next / Done sections; `whats-next` and `stepping-away` keep
+  it. Ask no tracker question. In-place mode: copy it from
+  `${CLAUDE_PLUGIN_ROOT}/template/docs/TASKS.md` **only if absent** — an
+  existing task file or tracker is that repo's decision, never overwritten.
+  Say in the sign-off that a project already using another system (GitHub
+  Issues, a ticket folder, another tool's plans) names it under *The tracker*
+  in `CLAUDE.md`, and pm follows that instead.
+- **The inbox.** `docs/intent/inbox.md` ships in the template (loose asks
+  and ideas, one line each, the tier below an intent). In-place mode: copy it
+  if absent, same rule.
 - **`.gitignore`** — the template's covers new-folder modes. In-place mode:
   ensure `.env`, `account.md`, and `_pm/transcripts/` are ignored (append
   additively; the `credential-guard` hook blocks staging them, but the
@@ -127,8 +131,8 @@ artifact scales with content.
 
 Confirm what you did in 3–4 lines: what was created (new folder or in-place
 `_pm/`), git state (initialized / existing / declined), renames done,
-skeleton captured, tracker wired or not, and — in-place — every file
-touched. Then point at the next step: *"Run `discovery` on the first piece
+skeleton captured, task list and inbox present, and — in-place —
+every file touched. Then point at the next step: *"Run `discovery` on the first piece
 of work — it writes `docs/intent/<slug>.md` and makes the size call. Then
 `whats-next` when you start a working session."*
 
