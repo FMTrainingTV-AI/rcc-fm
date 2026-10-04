@@ -1,7 +1,7 @@
 ---
 name: fm-odata
 description: Connect DIRECTLY to a hosted FileMaker file over OData with supplied credentials, and change its schema (create tables/fields) — the live "side door." Use when the user hands you a server + file + account + password and wants to connect over OData, list/read tables, or create/alter a table or field on a hosted file. Ships a ready-to-run client — RUN IT, do not write your own. NEVER use the fixed-connection fm_odata_* MCP tools for an arbitrary file; they only carry pre-wired connections. For record CRUD use fm-dataapi; for which-method-when see fm-connections.
-argument-hint: "[connect|tables|schema|create-table|add-record|get|drop-table] [--server --file --account --password | --config]"
+argument-hint: "[connect|tables|schema|create-table|add-fields|add-record|get|drop-table] [--server --file --account --password | --config]"
 allowed-tools: Bash, Read, Write
 ---
 
@@ -24,6 +24,7 @@ Credentials three ways (first wins): inline flags · `--config <file>` (a `hoste
 | `tables [--all]` | Base tables (`--all` includes relationship occurrences). |
 | `schema <table>` | Fields + types for one table. |
 | `create-table <name> [--field Name:VARCHAR(255) ...]` | Create a table. Omit `--field` for a default task table. |
+| `add-fields <table> --field Name:SQLTYPE [...]` | Add field(s) to an existing table (PATCH under the hood — POST fails with -1012). |
 | `add-record <table> --data '{...}'` | Insert a record (or `--name/--status/--due/--notes`). |
 | `get <table> [--top N]` | Read records back. |
 | `drop-table <name>` | Delete a table (cleanup). |
@@ -33,7 +34,7 @@ For anything the CLI doesn't cover, import the client: `from odata_client import
 ## Three hard rules (each one cost a real debugging session)
 
 ### 1. Go DIRECT — never the MCP for an arbitrary hosted file
-The pre-installed `fm_odata_*` MCP tools carry only **fixed, pre-wired connection IDs** (e.g. `CONN_A`, `CONN_B`). They take **no** server/account/password, so they can't touch a file you were just handed credentials for — you'll get auth failures against the wrong database. For any arbitrary hosted file, **use the script above.** (The MCP is fine for its own pre-configured connections — that's `fm-connections`' call.)
+The pre-installed `fm_odata_*` MCP tools carry only **fixed, pre-wired connection IDs** baked into that MCP server's own config. They take **no** server/account/password, so they can't touch a file you were just handed credentials for — you'll get auth failures against the wrong database. For any arbitrary hosted file, **use the script above.** (The MCP is fine for its own pre-configured connections — that's `fm-connections`' call.)
 
 ### 2. create-table uses SQL DDL types, NOT FileMaker types
 FileMaker's OData create-table API wants **SQL DDL** type names. The client validates and rejects FileMaker-style names before sending, so error **`8310` ("internal data formatting error") can't recur** — but know the mapping:
@@ -59,4 +60,4 @@ After an OData schema change, the new table exists but **nothing sees it through
 3. `create-table` / `add-record` to change it — explain each schema change before you make it.
 4. Remind the user: new tables need a **layout** before the Data API can read them.
 
-Full backstory (the two blockers, diagnosed): `references/odata-lessons.md`.
+Full backstory (the blockers, diagnosed): `references/odata-lessons.md`.

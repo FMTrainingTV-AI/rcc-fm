@@ -14,6 +14,7 @@ Usage:
   python3 fm_odata.py tables [--all]
   python3 fm_odata.py schema <table>
   python3 fm_odata.py create-table <name> [--field Name:VARCHAR(255) --field Due:DATE ...]
+  python3 fm_odata.py add-fields <table> --field GitSHA:VARCHAR(40) [--field ...]
   python3 fm_odata.py add-record <table> --data '{"Name":"x"}'   (or --name/--status/--due/--notes)
   python3 fm_odata.py get <table> [--top N]
   python3 fm_odata.py drop-table <name>
@@ -90,6 +91,15 @@ def cmd_create_table(client, args):
     print(json.dumps(result, indent=2))
 
 
+def cmd_add_fields(client, args):
+    fields = _parse_fields(args.field)
+    print(f"Adding to table {args.table!r}: "
+          f"{', '.join(f['name'] + ' ' + f['type'] for f in fields)} ...")
+    result = client.add_fields(args.table, fields)
+    print("✅ fields added")
+    print(json.dumps(result, indent=2))
+
+
 def cmd_add_record(client, args):
     if args.data:
         values = json.loads(args.data)
@@ -153,6 +163,12 @@ def build_parser():
     pc.add_argument("--field", action="append", metavar="NAME:SQLTYPE",
                     help="repeatable; SQL DDL type e.g. Name:VARCHAR(255). Omit for a default task table.")
     pc.set_defaults(func=cmd_create_table)
+
+    pf = sub.add_parser("add-fields", parents=[creds])
+    pf.add_argument("table")
+    pf.add_argument("--field", action="append", required=True, metavar="NAME:SQLTYPE",
+                    help="repeatable; SQL DDL type e.g. GitSHA:VARCHAR(40)")
+    pf.set_defaults(func=cmd_add_fields)
 
     pa = sub.add_parser("add-record", parents=[creds])
     pa.add_argument("table")

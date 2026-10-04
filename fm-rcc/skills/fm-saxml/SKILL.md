@@ -80,6 +80,6 @@ See `docs/reference/ddr_xml_structure.md` for the full format spec (both classic
 - `scripts/fmsaveasxml.py` — FM 2026 split-catalog parser (invoked by `split`).
 - `scripts/readable.py` — the knowledge-base exporter (invoked by `readable`).
 
-> Engine provenance: vendored 2026-07-06 — see `tools/ddr/VENDOR.md`.
+> Engine provenance: see `${CLAUDE_PLUGIN_ROOT}/tools/ddr/VENDOR.md`. This plugin's copy is the one true home — improve it here.
 
 Requires Python 3 + `lxml` (`pip install lxml`; falls back to `xml.etree` with reduced XPath).

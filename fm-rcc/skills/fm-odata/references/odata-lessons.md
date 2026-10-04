@@ -1,14 +1,14 @@
-# OData lessons — the two blockers, diagnosed
+# OData lessons — the blockers, diagnosed
 
-Backstory for the two hard rules in SKILL.md. Both came from a real session: "add a table to a live, hosted workshop file over OData." It worked — but only after two separate walls, each of which the bundled scripts now prevent.
+Backstory for the hard rules in SKILL.md. Each came from a real session against a live, hosted file — and each is a wall the bundled scripts now prevent.
 
 ## Blocker 1 — the MCP tools were the wrong instrument
 
 **What happened:** the first instinct was the pre-installed FileMaker **MCP** OData tools (`fm_odata_*`). They failed before touching the file.
 
-**Why:** those tools don't take a server / account / password. They expose a fixed set of **pre-configured connection IDs** baked into the MCP server's own config (e.g. `CONN_A`, `CONN_B`, `CONN_C`). Each points at a *different* database with *its own* stored credentials.
+**Why:** those tools don't take a server / account / password. They expose a fixed set of **pre-configured connection IDs** baked into the MCP server's own config. Each points at a *different* database with *its own* stored credentials.
 
-- The closest-named ID resolved to a *different* database entirely, and its stored credentials returned `Authentication failed … Invalid user account or password`.
+- The closest-named ID resolved to an unrelated database, and its stored credentials returned `Authentication failed … Invalid user account or password`.
 - **None** of the IDs point at an arbitrary hosted file, and there is **no way to feed** supplied credentials into those tools.
 
 **Root cause:** the MCP is a *fixed-connection* tool — great for databases someone already wired in, useless for a file you were just handed credentials for. Wrong tool, not a bug.
@@ -29,11 +29,20 @@ HTTP 400  {"error": {"code": "8310", "message": "An internal data formatting err
 
 **Resolution / prevention:** switch every field to a SQL DDL type ([Claris OData docs](https://help.claris.com/en/odata-guide/content/create-table.html)). The bundled `odata_client.create_table` **validates types client-side and rejects FileMaker-style names before sending**, so 8310 can't recur.
 
+## Blocker 3 — add-fields to an existing table failed with -1012 on POST
+
+**What happened:** `create-table` worked, but sending the same-shaped body to an *existing* table (`POST /FileMaker_Tables/{table}` with `{"fields":[..]}`) returned `-1012 "Syntax error in the request body"`.
+
+**Root cause:** wrong **HTTP verb.** The Claris OData schema API creates tables with POST but adds fields to an existing table with **PATCH** (verified live against FMS 2026: `PATCH /FileMaker_Tables/{table}` with `{"fields":[{"name":"GitSHA","type":"VARCHAR(40)"}]}` returned 200 and added the field).
+
+**Resolution / prevention:** `odata_client.add_fields` now sends PATCH, and the CLI exposes it as `add-fields`.
+
 ## The reusable takeaway
 
-The scripts encode both lessons: they connect direct from supplied credentials (any hosted file), and validate/emit SQL DDL types. Two one-liners worth remembering:
+The scripts encode these lessons: they connect direct from supplied credentials (any hosted file), validate/emit SQL DDL types, and add fields with PATCH. One-liners worth remembering:
 
 1. **MCP OData tools = fixed, pre-wired connections.** New hosted file + its own credentials → go straight to the OData REST endpoint.
 2. **OData create-table uses SQL types, not FileMaker types.** `VARCHAR(255)`, not `string`. `8310` = unrecognized field type.
 3. **OData can run scripts.** They're exposed as OData Actions: `POST /fmi/odata/v4/<db>/Script.<ScriptName>` with body `{"scriptParameterValue":"<string>"}`. Confirm a script's signature by grepping the service `$metadata` for `<Action Name="Script.…"`. (The bundled client has no command for this yet — use `curl`; the scaffold's `export_saxml.py` driver shows the pattern.)
 4. **Container `$value` endpoints can 502 behind some proxies.** OData JSON never returns container contents (always `null`); the binary sidecar `.../<table>('<pk>')/<containerField>/$value` works — except on servers whose front proxy caps response sizes, where it 502s outright. Prefer a text-field transport for large payloads (the SAXML pattern), and expect **CR line terminators** in text fields read over OData (FileMaker's internal convention — harmless for XML parsing, but visible in diffs against disk files).
+5. **Create table = POST, add fields = PATCH.** `-1012` on `/FileMaker_Tables/{table}` = you POSTed where the schema API wants PATCH.

@@ -10,8 +10,8 @@ credentials live in exactly one place — the file the workshop hands you.
 FileMaker OData reference:
   Service root : GET  {base}/                      -> list of entity sets (tables)
   Metadata     : GET  {base}/$metadata             -> full CSDL schema (XML)
-  Create table : POST {base}/FileMaker_Tables       {"tableName":..,"fields":[..]}
-  Add field(s) : POST {base}/FileMaker_Tables/{tbl} {"fields":[..]}
+  Create table : POST  {base}/FileMaker_Tables       {"tableName":..,"fields":[..]}
+  Add field(s) : PATCH {base}/FileMaker_Tables/{tbl} {"fields":[..]}
   Create record: POST {base}/{table}                {field: value, ..}
   Read records : GET  {base}/{table}?$top=..&$filter=..
 """
@@ -54,10 +54,10 @@ def load_config(md_path: str | Path | None = None) -> dict:
     """Parse connection details out of hostedFile.md.
 
     Expected lines (order-independent):
-        server  - your-server.example.com
-        file    - YourFile.fmp12
+        server  - fms.example.com
+        file    - MyFile.fmp12
         account - apiuser
-        pass    - your-password
+        pass    - secret
     """
     if md_path is None:
         md_path = Path(__file__).resolve().parent.parent / "hostedFile.md"
@@ -212,12 +212,8 @@ class ODataClient:
         return fields
 
     # ---- schema changes ---------------------------------------------------
-    def create_table(self, table: str, fields: list[dict]) -> object:
-        """Create a table. fields = [{"name": "Name", "type": "VARCHAR(255)"}, ...].
-
-        Types are SQL DDL names (VARCHAR, DATE, TIMESTAMP, INT, NUMERIC, ...),
-        optionally sized VARCHAR(200) or repeated INT[4].
-        """
+    @staticmethod
+    def _validate_field_types(fields: list[dict]) -> None:
         for f in fields:
             base = _base_sql_type(str(f.get("type", "")))
             if base not in SQL_TYPES:
@@ -225,14 +221,27 @@ class ODataClient:
                     f"field {f.get('name')!r}: type {f.get('type')!r} "
                     f"(base {base!r}) not in {sorted(SQL_TYPES)}"
                 )
+
+    def create_table(self, table: str, fields: list[dict]) -> object:
+        """Create a table. fields = [{"name": "Name", "type": "VARCHAR(255)"}, ...].
+
+        Types are SQL DDL names (VARCHAR, DATE, TIMESTAMP, INT, NUMERIC, ...),
+        optionally sized VARCHAR(200) or repeated INT[4].
+        """
+        self._validate_field_types(fields)
         _, data = self._request(
             "POST", "/FileMaker_Tables", {"tableName": table, "fields": fields}
         )
         return data
 
     def add_fields(self, table: str, fields: list[dict]) -> object:
-        """Add one or more fields to an existing table."""
-        _, data = self._request("POST", f"/FileMaker_Tables/{table}", {"fields": fields})
+        """Add one or more fields to an existing table.
+
+        The Claris schema API takes PATCH here — POST returns -1012
+        "Syntax error in the request body".
+        """
+        self._validate_field_types(fields)
+        _, data = self._request("PATCH", f"/FileMaker_Tables/{table}", {"fields": fields})
         return data
 
     def delete_table(self, table: str) -> int:
