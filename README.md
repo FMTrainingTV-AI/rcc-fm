@@ -4,8 +4,8 @@ Two plugins for agentic development work.
 
 **fm-rcc** — agentic FileMaker development: calculation language, paste-ready
 validated XML, Save-as-XML/DDR schema analysis, and safe `.fmp12` patching
-(backup → validate → verify → rollback), plus Data API / OData / ProofKit
-integration and offline Claris docs lookup.
+(backup → validate → verify → rollback), plus Data API / OData integration
+and offline Claris docs lookup.
 
 **pm** — the project-management layer used in the workshop: `/pm:pm-scaffold`
 stands a project up, `whats-next` and `stepping-away` open and close a working
