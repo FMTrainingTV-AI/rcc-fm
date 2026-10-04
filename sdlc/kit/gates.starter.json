@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "production": [],
+  "protected": [],
+  "tests": [
+    "tests/**",
+    "test/**",
+    "**/test_*.py",
+    "**/*_test.py",
+    "**/*_test.go",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ]
+}

@@ -24,7 +24,7 @@ def allocate(root, name, intent):
         raise ValueError('session directory escapes the project')
     day, session_id = now()[:10], str(uuid.uuid4())
     # O_EXCL handles competing processes on this filesystem. It does not claim
-    # a distributed lock across two offline synced-folder replicas.
+    # a distributed lock across two offline Dropbox replicas.
     for ordinal in range(1, 100000):
         stem = f'{day}-{name}' + (f'-{ordinal}' if ordinal > 1 else '')
         path = directory / (stem + '.md')
@@ -57,6 +57,8 @@ def append(root, relative, session_id, entry, close=False):
         if re.search(r'^(Session-ID|Closed|Started):', entry, re.M):
             raise ValueError('entry must not contain reserved session metadata')
         stamp = now()
+        if close:  # the helper writes this heading; an entry that brings its own is not doubled
+            entry = re.sub(r'\A\s*(?:## Session close[ \t]*\n\s*)+', '', entry)
         content = ('\n\n## Session close\n\n' + entry.strip() + f'\n\nClosed: {stamp}\n') if close else (
             f'\n\n## Re-aimed {stamp}\n\n' + entry.strip() + '\n')
         f.seek(0, os.SEEK_END); f.write(content); f.flush(); os.fsync(f.fileno())

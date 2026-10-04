@@ -1,7 +1,7 @@
 # pm — Project-Management Plugin
 
 Claude Code plugin that packages a light project-management layer for agentic
-work. **Read [`SDLC.md`](./SDLC.md) first** — the principles: meaningful
+work. **Read [`WORKFLOW.md`](./WORKFLOW.md) first** for how the skills fit together, then [`SDLC.md`](./SDLC.md) for the principles: meaningful
 outcomes, proportionate verification, and the one rule: `docs/` is shared
 record, `_pm/` is personal log. pm is the discovery on-ramp, the session
 layer and a plain task list; it doesn't replace a planning tool you already use.
@@ -49,11 +49,17 @@ Provides:
   verification fresh, read the output, report claim + evidence together.
   Ships the `## Verifying your work` block the template carries (and
   pm-scaffold stamps in-place), so the floor holds without the plugin.
+- **`adversary-review`** skill and the **`adversary-reviewer`** agent — for a
+  risky change or a doubt the checks don't settle: a fresh, read-only Claude
+  subagent that did not write the change gets the diff, the acceptance lines
+  and the proof, and reports where the change fails them. It never edits and
+  never approves.
+- **`ship-acceptance`** skill — the last handoff: the accepted intent's
+  lines checked by someone who did not build it, a person releasing, and a
+  record in `docs/shipped/` that says blocked, ready-for-release, shipped or
+  released-with-exceptions as it actually is.
 - **`okf`** skill *(utility)* — format contract for the opt-in `knowledge/`
   bundle: OKF conventions, sprout tripwires, boundaries.
-- **`granola-transcript`** skill *(utility)* — fetches full verbatim Granola
-  meeting transcripts (list-then-match; the notes.granola.ai link id is not
-  the meeting id) and lands them in gitignored `_pm/transcripts/`.
 - **Session helper** — `scripts/session.py` allocates distinct session files
   and closes by exact path/ID with an explicit closure marker; no
   newest-file guessing.
@@ -94,6 +100,8 @@ Creates `client-Acme/` in the current directory, ready to work.
 pm/
 ├── .claude-plugin/
 │   └── plugin.json          ← plugin manifest (marketplace.json is one level up)
+├── agents/
+│   └── adversary-reviewer.md ← the read-only reviewer subagent
 ├── commands/
 │   └── pm-scaffold.md       ← /pm:pm-scaffold
 ├── hooks/
@@ -101,7 +109,8 @@ pm/
 ├── scripts/                 ← session.py, credential guard and policy
 ├── skills/
 │   ├── discovery/ · whats-next/ · checkpoint/ · stepping-away/
-│   ├── sibling-sessions/ · verify-before-done/ · okf/ · granola-transcript/
+│   ├── sibling-sessions/ · verify-before-done/ · okf/
+│   ├── adversary-review/ · ship-acceptance/
 └── template/                ← the minimal starter /pm:pm-scaffold copies
 ```
 

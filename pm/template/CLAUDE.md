@@ -60,7 +60,7 @@ first written into it (`mkdir -p` then write) — presence means it was needed.
 | `resources/` | Material **you bring in** from outside the Claude-driven workflow (`design-handoff/`, `design-exploration/`, `research/`, `history/` as needed) | first external file arrives |
 | `docs/agents/worker-env.md` | What a fresh worktree lacks, the repo's own verify command, off-limits paths (`sibling-sessions` reads it) | the first sibling session in this repo needs setup notes |
 | `docs/agents/client-face.md` | Optional: names a client-facing tracker and its close-out steps; `stepping-away` follows it (contract in the pm `stepping-away` skill) | the client-face tool's own setup writes it |
-| `_pm/transcripts/` | Meeting transcripts — client conversations, **gitignored** | first transcript kept (e.g. `granola-transcript` skill) |
+| `_pm/transcripts/` | Meeting transcripts — client conversations, **gitignored** | first transcript kept |
 | `_pm/artifacts/` | Other raw inputs — customer docs, exports, recordings | first raw input that isn't a transcript |
 | `_pm/prototypes/` | HTML mockups for customer validation (code prototypes live in their surface container) | first validation mockup |
 | `_pm/deliverables/` | What you hand to the client — reports, dashboards | first deliverable produced |
@@ -68,7 +68,7 @@ first written into it (`mkdir -p` then write) — presence means it was needed.
 
 Claude-generated docs go in `docs/`; external material goes in `resources/` —
 provenance decides, not file type. FileMaker-specific structure comes from the
-fm-rcc plugin, not from sprouting here.
+fm-dc plugin, not from sprouting here.
 
 ## The skeleton — default planning artifact
 

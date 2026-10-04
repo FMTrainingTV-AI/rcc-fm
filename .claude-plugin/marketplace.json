@@ -8,12 +8,17 @@
     {
       "name": "fm-rcc",
       "source": "./fm-rcc",
-      "description": "Agentic FileMaker development: one-verb-per-skill (calc language, scripting, XML wire format, Save-as-XML/DDR analysis, patch pipeline, turnkey direct OData + Data API + Admin API + OttoFMS connection tools (fm-otto: server log content, zero-downtime hosted-file copy, deployments), connection router, docs) plus BaseElements + MBS plugin reference; SaXML patching with verify/rollback; XML\u2192file conversion; project scaffolding with remote-export toolbelt."
+      "description": "Agentic FileMaker development: one-verb-per-skill (calc language, scripting, XML wire format, Save-as-XML/DDR analysis, patch pipeline, turnkey direct OData + Data API + Admin API + OttoFMS connection tools (fm-otto: server log content, zero-downtime hosted-file copy, deployments), connection router, docs) plus BaseElements + MBS plugin reference; SaXML patching with verify/rollback; XML→file conversion; project scaffolding with remote-export toolbelt."
     },
     {
       "name": "pm",
       "source": "./pm",
-      "description": "Project-management layer for agentic work: /pm:pm-scaffold stands up a starter, whats-next and stepping-away open and close each working session, checkpoint re-aims a long one, verify-before-done gates completion claims on fresh evidence, and a credential-guard hook blocks staging credential-shaped files."
+      "description": "Project-management layer for agentic work: /pm:pm-scaffold stands up a starter, whats-next and stepping-away open and close each working session, checkpoint re-aims a long one, verify-before-done gates completion claims on fresh evidence, and a credential-guard hook blocks staging credential-shaped files; adversary-review puts a fresh read-only Claude subagent on a risky change, and ship-acceptance checks a deliverable against its accepted intent before and after release."
+    },
+    {
+      "name": "sdlc",
+      "source": "./sdlc",
+      "description": "Repo-level enforcement kits for the agentic SDLC, the half that pm leaves to deterministic tools. gate-hooks installs one gate script into a repo's .claude/ (production gate, protected paths, a test lock for fix tasks, a commit and Stop backstop), driven by .claude/sdlc/gates.json. review-policy sets up REVIEW.md and runs a read-only, fresh-context policy reviewer against it. Uses only Claude Code features and does not depend on pm."
     }
   ]
 }
