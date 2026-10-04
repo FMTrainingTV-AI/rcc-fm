@@ -71,7 +71,7 @@ This is the **read path** of agent-driven FileMaker development. The rhythm:
 - **Session open** — export. The agent now has a current map of a file it
   may never have seen before.
 - **During the session** — work happens: script XML, OData schema changes,
-  ProofKit queries.
+  Data API queries.
 - **Session close** — export again, diff against the morning's file. The
   diff *is* the changelog: derived from what actually changed, not from
   what anyone remembers doing.

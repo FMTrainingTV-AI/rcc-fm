@@ -1,6 +1,6 @@
 # CLAUDE.md — <Project Name>
 
-FileMaker engagement workspace, scaffolded by the **fm-rcc** plugin (`/fm-rcc:fm-scaffold`). FM capability — patching, XML, connections, ProofKit, docs lookup — comes from the plugin's skills; this file only carries what is specific to THIS project.
+FileMaker engagement workspace, scaffolded by the **fm-rcc** plugin (`/fm-rcc:fm-scaffold`). FM capability — patching, XML, connections, docs lookup — comes from the plugin's skills; this file only carries what is specific to THIS project.
 
 ## Project facts (fill in)
 
@@ -39,6 +39,6 @@ fm/           created by /fm-rcc:fm-init — managed-file config, baseline expor
 - **Schema questions** run through the pipeline: export → `ddr.py split` → `summary`/`search`/`refs` (tools live in the fm-rcc plugin; see the `fm-saxml` skill).
 - **Changes to the .fmp12** go through the fm-patch skill / fm-patch-builder agent — never hand-applied without the backup→validate→smoke→verify sequence.
 - **Snippets are validated** with fmlint before any paste (fm-xml skill rule).
-- **Connection mode choice** (ProofKit MCP vs Data API vs OData vs Admin API vs pipeline) follows the fm-connections doctrine.
+- **Connection mode choice** (Data API vs OData vs Admin API vs pipeline) follows the fm-connections doctrine.
 - **Hosted-file structure reads** go through the remote export loop (workflow/01–03): export brackets the session — baseline at open, re-export + diff at close; clipboard round-trips fill the middle.
 - **Run → Log → Reflect:** every workflow run appends to its journal in `logs/` — that feedback loop is how gotchas get caught before they harden into habits.

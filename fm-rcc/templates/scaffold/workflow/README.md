@@ -9,7 +9,7 @@ Numbered runbooks for the agent ↔ FileMaker loop on THIS project.
 
 **Setup (hosted file):**
 
-- [`01-connect-odata-and-mcp.md`](01-connect-odata-and-mcp.md) — the two doors in
+- [`01-connect-odata.md`](01-connect-odata.md) — the live door in
 - [`02-install-the-export-script.md`](02-install-the-export-script.md) — give the agent eyes (one-time)
 - [`03-export-the-structure-remotely.md`](03-export-the-structure-remotely.md) — the read path, on demand
 

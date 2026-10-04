@@ -1,6 +1,6 @@
 # fm-rcc — Agentic FileMaker Plugin
 
-A Claude Code plugin that turns a session into a competent FileMaker developer. It **reads a live hosted file's whole design over the wire** — Save-as-XML pulled through OData, with no FileMaker Pro open, no CLI tools, no server plugin, and the file never taken down — then knows the calculation language, generates and validates paste-ready XML, audits that schema, and **patches `.fmp12` files with backup → validate → verify → rollback safety**, plus Data API / OData / ProofKit integration, first-party docs lookup, and the BaseElements + MBS plugins.
+A Claude Code plugin that turns a session into a competent FileMaker developer. It **reads a live hosted file's whole design over the wire** — Save-as-XML pulled through OData, with no FileMaker Pro open, no CLI tools, no server plugin, and the file never taken down — then knows the calculation language, generates and validates paste-ready XML, audits that schema, and **patches `.fmp12` files with backup → validate → verify → rollback safety**, plus Data API / OData integration, first-party docs lookup, and the BaseElements + MBS plugins.
 
 > Working on the plugin itself: [CLAUDE.md](CLAUDE.md).
 
@@ -31,11 +31,11 @@ cp .env.example .env      # fill in FM credentials if the defaults don't fit
 
 Use **`/fm-rcc:fm-scaffold`** on its own only when you want structure *without* a file yet (greenfield), or the wider `--full` / `--client-kit` shapes.
 
-## The 12 skills — one verb each
+## The 13 skills — one verb each
 
 Skills load automatically when the topic matches. They're organized by what you're doing:
 
-> **How Claude reaches a file — four ways in, one way out.** Tables and fields go *in* live over **OData**; whole layouts, relationships and table occurrences go in through the **patch** pipeline (local & closed); individual objects — scripts, functions, fields, layout objects — go in by **clipboard paste**, with you as the gate; **ProofKit** reads live data and ships a web-viewer UI. Design only ever comes *out* as **Save-as-XML** — which fm-rcc pulls from a *live hosted file over the wire*, the read that used to demand the file closed on your disk. That read is what feeds diff, patch, and build.
+> **How Claude reaches a file — three ways in, one way out.** Tables and fields go *in* live over **OData**; whole layouts, relationships and table occurrences go in through the **patch** pipeline (local & closed); individual objects — scripts, functions, fields, layout objects — go in by **clipboard paste**, with you as the gate. Design only ever comes *out* as **Save-as-XML** — which fm-rcc pulls from a *live hosted file over the wire*, the read that used to demand the file closed on your disk. That read is what feeds diff, patch, and build.
 
 ### ✍️ Author — produce FileMaker
 | Skill | Owns |
@@ -67,8 +67,7 @@ Skills load automatically when the topic matches. They're organized by what you'
 | **`fm-odata`** | The **schema side-door** — connect over OData with credentials and create/alter tables & fields on a live file. SQL-DDL validation baked in (no more `8310`). Ships a ready-to-run client. |
 | **`fm-admin`** | The **server door** — Admin API v2 with console credentials: hosted-file inventory, server status, and **download a hosted `.fmp12`** (close → download → always reopen). Ships a ready-to-run driver. |
 | **`fm-otto`** | The **OttoFMS door** — the Developer API (`/otto/api`) on servers running Otto: **read server log content** (`Event.log`, script errors — the Admin API has no such endpoint) and **copy a hosted file or clone with zero downtime**, plus deployments, builds and file surgery. Ships a ready-to-run driver. |
-| **`fm-connections`** | The **router** — which method when (MCP vs direct OData vs direct Data API vs Admin API vs OttoFMS vs offline), and the "arbitrary file → go direct, never the fixed MCP" rule. |
-| **`fm-proofkit`** | The **ProofKit bridge** — MCP server (live schema, SQL, CRUD, ERD), React web-viewer apps inside FileMaker, and the ProofGeist TS toolchain for external web apps. |
+| **`fm-connections`** | The **router** — which method when (direct OData vs direct Data API vs Admin API vs OttoFMS vs offline), and the "arbitrary file → go direct, never the fixed MCP" rule. |
 
 ### 🧩 Extend — third-party plugins *(unprefixed by design — they're separate products)*
 | Skill | Owns |

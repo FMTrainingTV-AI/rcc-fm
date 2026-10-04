@@ -24,8 +24,8 @@ wires it in FM Pro when wanted). Iteration = edit spec, re-run; additive-only.
 > **Operator prompts (MUST):** the target file changes hands between FileMaker and
 > the CLI tools during this workflow. At every gate, explicitly ASK the operator,
 > naming the file: "please CLOSE builds/<File>.fmp12" before export/generate/apply;
-> "please OPEN builds/<File>.fmp12" when bridge work (typegen, seeding, deploy)
-> resumes. Never assume; verify closed with lsof, open with connectedFiles.
+> "please OPEN builds/<File>.fmp12" when work in FileMaker Pro (seeding, testing)
+> resumes. Never assume; verify both ways with lsof.
 
 ### 1. Design gate
 - MUST have the spec approved in chat before generating anything.

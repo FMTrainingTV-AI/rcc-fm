@@ -1,12 +1,12 @@
 ---
 name: fm-connections
-description: The FileMaker connection ROUTER — decide HOW to reach a FileMaker file (ProofKit MCP vs direct OData vs direct Data API vs Admin API vs OttoFMS vs offline schema pipeline) and the layout-as-security-boundary rules. Use when the choice of connection method is the question ("which way should I connect", "why did the MCP fail", "MCP vs Data API vs OData", how the FileMaker server APIs relate). For the actual work: schema changes → fm-odata; record CRUD → fm-dataapi; server ops / hosted-file download → fm-admin; OttoFMS servers (logs, zero-downtime file copy, deployments) → fm-otto; offline schema analysis → fm-saxml; ProofKit/web viewers → fm-proofkit.
+description: The FileMaker connection ROUTER — decide HOW to reach a FileMaker file (direct OData vs direct Data API vs Admin API vs OttoFMS vs offline schema pipeline) and the layout-as-security-boundary rules. Use when the choice of connection method is the question ("which way should I connect", "why did the MCP fail", "MCP vs Data API vs OData", how the FileMaker server APIs relate). For the actual work: schema changes → fm-odata; record CRUD → fm-dataapi; server ops / hosted-file download → fm-admin; OttoFMS servers (logs, zero-downtime file copy, deployments) → fm-otto; offline schema analysis → fm-saxml.
 allowed-tools: Bash, Read, Grep, Glob
 ---
 
 # FileMaker connections — which door, when
 
-FileMaker exposes several ways in. This skill picks the right one; the doing lives in the method skills. **Read `references/four-mode-doctrine.md` first when a task involves choosing a path.** (The doctrine covers the four file-level modes; the Admin API below is a fifth, server-level door.)
+FileMaker exposes several ways in. This skill picks the right one; the doing lives in the method skills. **Read `references/connection-doctrine.md` first when a task involves choosing a path.** (The doctrine covers the three file-level modes; the Admin API and OttoFMS below are server-level doors.)
 
 ## The rule that prevents the usual time-waster
 
@@ -16,16 +16,15 @@ FileMaker exposes several ways in. This skill picks the right one; the doing liv
 
 | Mode | Reach for it when | Skill / tool |
 |---|---|---|
-| **ProofKit MCP** | The connection is already **pre-wired** in the MCP (someone configured it); live schema/SQL/CRUD/ERD on a file that's open in the ProofKit app | `fm-proofkit` |
 | **Direct OData** | You have credentials for a hosted file and need **schema changes** (create tables/fields) or bulk access | **`fm-odata`** |
 | **Direct Data API** | You have credentials and need **record** CRUD (query/create/update/delete) | **`fm-dataapi`** |
 | **Admin API** | You have **admin console** credentials and need **server** operations — hosted-file inventory, server status, or downloading a hosted .fmp12 (close → download → reopen) | **`fm-admin`** |
 | **OttoFMS** | The server runs **OttoFMS** and you need **server logs**, a hosted file copied **without downtime**, deployments, or file surgery | **`fm-otto`** |
 | **Schema pipeline** | **Offline** deep analysis — calcs, scripts, relationship graph, agent knowledge base | `fm-saxml` (`tools/ddr/ddr.py`) |
 
-The first five talk to the file's *data* or the *server* live; note the credential split — OData/Data API use a **file account**, the Admin API and OttoFMS both use the **admin console** account. Different credentials for different doors — but Otto and the Admin API share one identity, so a single `.env` profile drives both.
+The first four talk to the file's *data* or the *server* live; note the credential split — OData/Data API use a **file account**, the Admin API and OttoFMS both use the **admin console** account. Different credentials for different doors — but Otto and the Admin API share one identity, so a single `.env` profile drives both.
 
-They coexist — a real session weaves between them: read pre-wired schema via MCP, mutate via direct OData, verify via a refreshed MCP call, query records via the direct Data API. That's normal.
+They coexist — a real session weaves between them: read the design offline via the schema pipeline, mutate via direct OData, verify with a fresh OData `schema` read, query records via the direct Data API. That's normal.
 
 ## How to pick
 
@@ -33,8 +32,8 @@ They coexist — a real session weaves between them: read pre-wired schema via M
 |---|---|
 | "Connect to THIS hosted file (server/file/account/password)" | Direct — **`fm-odata`** (schema) or **`fm-dataapi`** (records). Never the MCP. |
 | Query / create / update / delete **records** | Direct Data API → **`fm-dataapi`** |
-| Create a table, add a field, change schema programmatically | Direct OData → **`fm-odata`** (Data API can't; MCP doesn't expose it) |
-| Live schema/SQL on an already-configured, app-open file | ProofKit MCP → `fm-proofkit` |
+| Create a table, add a field, change schema programmatically | Direct OData → **`fm-odata`** (Data API can't) |
+| List the live tables and fields on a hosted file | Direct OData → **`fm-odata`** (`tables`, `schema <table>`) |
 | Get a hosted file LOCAL (to patch, clone, or archive it) — with console creds | **`fm-otto`** if the server runs Otto (no downtime); else Admin API → **`fm-admin`** (close → download → reopen) |
 | Server status, hosted-file list, who's connected | Admin API → **`fm-admin`** |
 | **Read the server's logs** — Event.log, script errors, "what happened yesterday" | **`fm-otto`** (the Admin API has no log-content endpoint at all) |
@@ -62,10 +61,10 @@ covers its configuration.
 
 ## Typical multi-mode flow
 
-Spot a missing field via MCP → add it via **`fm-odata`** → refresh MCP to confirm → create the API layout in FileMaker (human step, or `fm-xml` clipboard XML) → query via **`fm-dataapi`** to verify the round-trip. Four modes, one task.
+Spot a missing field in the `fm-saxml` knowledge base → add it via **`fm-odata`** → re-read it with `fm-odata schema <table>` to confirm → create the API layout in FileMaker (human step, or `fm-xml` clipboard XML) → query via **`fm-dataapi`** to verify the round-trip. Three modes, one task.
 
 ## References
 
-- `references/four-mode-doctrine.md` — the decision doctrine in depth (the source of the tables above).
+- `references/connection-doctrine.md` — the decision doctrine in depth (the source of the tables above).
 - `references/filemaker_integration_guide.md` — all three FM server APIs (Data API, OttoFMS, OData): auth, protocol, configuration.
 - `references/filemaker_api_reference.md` — Data API endpoint reference.

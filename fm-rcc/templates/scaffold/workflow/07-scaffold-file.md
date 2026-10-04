@@ -20,8 +20,8 @@ calcs repaired retroactively, layouts regenerated.
 > **Operator prompts (MUST):** the file changes hands between FileMaker and
 > the CLI during this workflow. At every gate, ask by name: "please CLOSE
 > `<File>.fmp12`" before export/generate/apply; "please OPEN `<File>.fmp12`"
-> when bridge work (typegen, seeding, deploy) resumes. Verify closed with
-> lsof, open with ProofKit `connectedFiles`.
+> when work in FileMaker Pro (seeding, testing) resumes. Verify both ways
+> with lsof.
 
 ## Steps
 

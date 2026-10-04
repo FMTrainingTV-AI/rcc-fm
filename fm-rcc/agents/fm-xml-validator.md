@@ -35,9 +35,9 @@ Exit 0 = the selected changes are gone from the diff. Two nuances (from the patc
 
 Scope the check like Claris does: only re-examine the catalogs the change touched; say which ones you checked.
 
-## Check 3 — Live database (when a server/bridge is reachable)
+## Check 3 — Live database (when a server is reachable)
 
-- ProofKit MCP up? (`connectedFiles` returns the file) → pull `get_filemaker_ddl_schema` for touched tables and diff against what the change claims; `execute_filemaker_sql` a SELECT to prove a new field/table actually accepts a query; `get_script_names` to confirm a script exists.
+- OData reachable? `${CLAUDE_PLUGIN_ROOT}/skills/fm-odata/scripts/fm_odata.py schema <table>` for each touched table, diffed against what the change claims — proves a new field/table actually exists on the live file.
 - Data API reachable? A scoped read against the relevant API layout (`${CLAUDE_PLUGIN_ROOT}/skills/fm-dataapi/scripts/fm.py`) proves end-to-end visibility.
 - Neither reachable → say so; skip, don't fake.
 

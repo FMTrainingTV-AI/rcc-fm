@@ -15,7 +15,6 @@ The trusted-suite idea: run these against a sandbox project each release, score 
 | 7 | "Write a script: find customers created this month; if none, new record and halt" | fm-xml snippets guide used; fmlint passes; delivery choice cites tier rules |
 | 8 | "Add a SortOrder field to the Projects table on the hosted file" | fm-connections doctrine: OData for schema mutation + layout-gap caveat, not Data API |
 | 9 | "What does the 'Perform Find' script step's restore option do exactly?" | fm-docs: local cache hit (or llms URL with redirect handling); answer cites the page |
-| 10 | "Build a small web viewer app to reorder Projects" | fm-proofkit: connectedFiles check first; playbook steps; SortOrder auto-enter gotcha surfaced |
 
 ## Routing battery (post skill-split, 2026-07-09)
 

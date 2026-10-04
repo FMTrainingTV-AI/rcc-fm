@@ -173,4 +173,3 @@ Set Variable [$qaText ; List ( RelatedTable::TextField )]
 | **Data API / OData** query or CRUD | `fm-connections` |
 | Exact **doc** lookup (step semantics, option names, versions) | `fm-docs` |
 | BaseElements (`BE_*`) or MBS (`MBS(...)`) **plugin** functions | `baseelements` / `mbs` |
-| **Web app** against FileMaker, or migrating off FileMaker | `fm-proofkit` |

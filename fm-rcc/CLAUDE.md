@@ -8,7 +8,7 @@ This repo IS the fm-rcc Claude Code plugin (see [README.md](README.md) for insta
 .claude-plugin/plugin.json   manifest (bump version on every shipped change)
 commands/                    /* slash commands (prompt markdown, drive tools via ${CLAUDE_PLUGIN_ROOT})
 agents/                      fm-patch-builder (transaction owner), fm-xml-validator (independent falsifier)
-skills/                      fm-core, fm-connections, fm-xml, fm-patch, fm-proofkit, fm-docs, ddr, fm-scripts
+skills/                      fm-core, fm-connections, fm-xml, fm-patch, fm-docs, ddr, fm-scripts
 tools/patch/                 vendored FM-Patch-Agent engine — see VENDOR.md; logic changes go upstream-style: edit + test here, note in VENDOR.md
 tools/ddr/  tools/fmlint/    vendored analysis + lint engines (VENDOR.md in each)
 tools/docs/  tools/doctor.py fm-rcc-native utilities (TDD'd in tests/)
@@ -24,7 +24,7 @@ resources/fmbase.fmp12       scaffold seed file (BASE + ProofKit) for E2E tests
 - **Vendored code (`tools/patch`, `tools/ddr`, `tools/fmlint`, Kear references in `skills/fm-xml`)**: don't drift casually. Real fixes are fine — with tests, and a line in the relevant `VENDOR.md`.
 - **Skills reference tools via `${CLAUDE_PLUGIN_ROOT}`** — never relative paths; skills run from arbitrary project cwds.
 - **The operator selection gate is sacred** (see `skills/fm-patch/references/workflows/diff-review.md` step 5): no code or prompt in this plugin may synthesize `selection.json`.
-- **Clean-room rule:** nothing in this repo may be copied from Claris's beta toolkit plugin. Original code + public docs only.
+- **Clean-room rule:** original code + public docs only.
 - **Agents pin a `model:`** matched to their work — mechanical/verify → `sonnet`, open-ended/brainstorming agents → `opus`.
 
 ## Local install for testing

@@ -42,7 +42,7 @@ Frontmatter carries `topic_type` (`script-step-reference`, `function-reference`,
 | `pro-help` (~1,100 pages) | every script step, function, and feature reference |
 | `data-api-guide` / `odata-guide` / `admin-api-guide` | server connectivity (pairs with fm-connections) |
 | `app-upgrade-tool-guide` | FMUpgradeTool patch grammar (pairs with fm-patch) |
-| `sql-reference` | ExecuteSQL / ProofKit SQL dialect |
+| `sql-reference` | ExecuteSQL dialect |
 | `developer-tool-guide` | FMDeveloperTool (Save-as-XML export) |
 
 Full corpus map, curated AI-feature page list, and mirror recipes: [references/claris-markdown-docs-reference.md](references/claris-markdown-docs-reference.md).
